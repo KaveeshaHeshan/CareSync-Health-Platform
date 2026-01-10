@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, 
   Filter, 
@@ -16,41 +16,42 @@ import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
+import labApi from '../../api/labApi';
 
 const TestOrderTable = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for laboratory orders
-  const orders = [
-    {
-      id: "LAB-8801",
-      patient: "Alexander Thompson",
-      test: "Complete Blood Count (CBC)",
-      date: "Jan 08, 2026",
-      status: "Completed",
-      priority: "Routine",
-      variant: "success"
-    },
-    {
-      id: "LAB-8842",
-      patient: "Sarah Miller",
-      test: "Lipid Panel",
-      date: "Jan 09, 2026",
-      status: "Processing",
-      priority: "Urgent",
-      variant: "warning"
-    },
-    {
-      id: "LAB-8910",
-      patient: "Michael Chen",
-      test: "HbA1c (Diabetes Screen)",
-      date: "Jan 09, 2026",
-      status: "Pending",
-      priority: "Routine",
-      variant: "neutral"
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const response = await labApi.getPatientResults();
+      const labResults = response.data || [];
+      
+      // Transform lab results to orders format
+      const transformedOrders = labResults.map(lab => ({
+        id: lab._id,
+        patient: lab.patient?.name || 'Unknown Patient',
+        test: lab.testName,
+        date: new Date(lab.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        status: lab.status === 'completed' ? 'Completed' : lab.status === 'pending' ? 'Pending' : 'Processing',
+        priority: lab.isCritical ? 'Urgent' : 'Routine',
+        variant: lab.status === 'completed' ? 'success' : lab.status === 'pending' ? 'neutral' : 'warning'
+      }));
+      
+      setOrders(transformedOrders);
+    } catch (error) {
+      console.error('Failed to fetch lab orders:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   const getStatusIcon = (status) => {
     switch (status) {

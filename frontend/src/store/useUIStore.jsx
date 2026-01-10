@@ -4,7 +4,7 @@ import { create } from 'zustand';
  * Global State (Zustand) for UI-related interactions.
  *
  */
-const useUIStore = create((set) => ({
+export const useUIStore = create((set) => ({
   // --- Sidebar State ---
   /** Whether the main navigation sidebar is expanded or collapsed. */
   isSidebarOpen: true,

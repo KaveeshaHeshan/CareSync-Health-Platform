@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, 
   Calendar, 
@@ -10,18 +10,48 @@ import {
 } from 'lucide-react';
 
 // Logic & Tools
-import { useAuth } from '../../hooks/useAuth'; //
-import { formatDate } from '../../utils/formatters'; //
+import { useAuth } from '../../hooks/useAuth';
+import { formatDate } from '../../utils/formatters';
+import appointmentApi from '../../api/appointmentApi';
+import labApi from '../../api/labApi';
 
 const DoctorDashboard = () => {
-  const { user } = useAuth(); //
+  const { user } = useAuth();
+  const [todayAppointments, setTodayAppointments] = useState([]);
+  const [pendingLabResults, setPendingLabResults] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ total: 0, pending: 0, completed: 0 });
 
-  // Mock data for the provider's daily queue
-  const todayAppointments = [
-    { id: 'APT-101', patient: 'Robert Fox', time: '09:00 AM', reason: 'Hypertension Follow-up', status: 'In-Queue' },
-    { id: 'APT-102', patient: 'Jane Cooper', time: '10:30 AM', reason: 'Post-Op Review', status: 'In-Queue' },
-    { id: 'APT-103', patient: 'Cody Fisher', time: '11:15 AM', reason: 'Acute Sinusitis', status: 'Completed' },
-  ];
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const appointmentsRes = await appointmentApi.getAppointments();
+      const appointments = appointmentsRes.data || [];
+      
+      // Filter today's appointments
+      const today = new Date().toDateString();
+      const todaysAppts = appointments.filter(apt => 
+        new Date(apt.date).toDateString() === today
+      );
+      
+      setTodayAppointments(todaysAppts);
+      
+      // Calculate stats
+      setStats({
+        total: appointments.length,
+        pending: appointments.filter(a => a.status === 'pending').length,
+        completed: appointments.filter(a => a.status === 'completed').length
+      });
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="p-6 space-y-8 max-w-7xl mx-auto">
@@ -41,13 +71,13 @@ const DoctorDashboard = () => {
         </div>
       </header>
 
-      {/* 2. Provider Stats (Feature: UserManagement) */}
+      {/* 2. Provider Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[
-          { label: 'Total Patients', value: '1,284', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
-          { label: 'Appointments', value: '12', icon: Calendar, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-          { label: 'Pending Results', value: '08', icon: AlertCircle, color: 'text-amber-600', bg: 'bg-amber-50' },
-          { label: 'Completed', value: '04', icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+          { label: 'Total Appointments', value: stats.total.toString(), icon: Calendar, color: 'text-blue-600', bg: 'bg-blue-50' },
+          { label: 'Today', value: todayAppointments.length.toString(), icon: Clock, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+          { label: 'Pending', value: stats.pending.toString(), icon: AlertCircle, color: 'text-amber-600', bg: 'bg-amber-50' },
+          { label: 'Completed', value: stats.completed.toString(), icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
         ].map((stat, i) => (
           <div key={i} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
             <div className={`${stat.bg} ${stat.color} w-10 h-10 rounded-lg flex items-center justify-center mb-3`}>
@@ -68,26 +98,30 @@ const DoctorDashboard = () => {
           </div>
           
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-            {todayAppointments.map((apt) => (
-              <div key={apt.id} className="p-5 flex items-center justify-between border-b last:border-0 border-slate-50 hover:bg-slate-50 transition-colors">
+            {loading ? (
+              <div className="p-8 text-center text-slate-500">Loading appointments...</div>
+            ) : todayAppointments.length === 0 ? (
+              <div className="p-8 text-center text-slate-500">No appointments today</div>
+            ) : todayAppointments.map((apt) => (
+              <div key={apt._id} className="p-5 flex items-center justify-between border-b last:border-0 border-slate-50 hover:bg-slate-50 transition-colors">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-slate-100 rounded-xl flex flex-col items-center justify-center text-slate-500">
                     <Clock size={16} />
-                    <span className="text-[10px] font-bold uppercase">{apt.time.split(' ')[1]}</span>
+                    <span className="text-[10px] font-bold uppercase">{apt.time}</span>
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-900">{apt.patient}</h4>
-                    <p className="text-xs text-slate-500">{apt.reason}</p>
+                    <h4 className="font-bold text-slate-900">{apt.patient?.name || 'Unknown Patient'}</h4>
+                    <p className="text-xs text-slate-500">{apt.reason || 'No reason provided'}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-4">
                   <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                    apt.status === 'Completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-indigo-50 text-indigo-600'
+                    apt.status === 'completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-indigo-50 text-indigo-600'
                   }`}>
                     {apt.status}
                   </span>
-                  {apt.status !== 'Completed' && (
+                  {apt.status !== 'completed' && (
                     <button className="bg-slate-900 text-white p-2 rounded-lg hover:bg-indigo-600 transition-colors">
                       <PlayCircle size={18} />
                     </button>

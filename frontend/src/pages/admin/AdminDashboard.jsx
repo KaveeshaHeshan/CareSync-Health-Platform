@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, 
   UserCheck, 
@@ -11,26 +11,43 @@ import {
 } from 'lucide-react';
 
 // Logic & Tools
-import { useAuth } from '../../hooks/useAuth'; //
-import { formatCurrency, formatDate } from '../../utils/formatters'; //
+import { useAuth } from '../../hooks/useAuth';
+import { formatCurrency, formatDate } from '../../utils/formatters';
+import adminApi from '../../api/adminApi';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
+  const [stats, setStats] = useState({
+    totalPatients: 0,
+    totalDoctors: 0,
+    monthlyRevenue: 0,
+    pendingVerifications: 0
+  });
+  const [recentUsers, setRecentUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock System Stats
-  const stats = [
-    { label: 'Total Patients', value: '4,290', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Active Doctors', value: '156', icon: UserCheck, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-    { label: 'Monthly Revenue', value: 42850, icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50', isCurrency: true },
-    { label: 'Pending Verifications', value: '12', icon: ShieldAlert, color: 'text-amber-600', bg: 'bg-amber-50' },
-  ];
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
-  // Mock User Table Data
-  const recentUsers = [
-    { id: 'U-991', name: 'Dr. Alana Smith', role: 'DOCTOR', joined: '2026-01-05', status: 'Active' },
-    { id: 'U-992', name: 'Marcus Wright', role: 'PATIENT', joined: '2026-01-08', status: 'Pending' },
-    { id: 'U-993', name: 'Dr. Kevin Vane', role: 'DOCTOR', joined: '2026-01-09', status: 'Active' },
-  ];
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const [statsRes, usersRes] = await Promise.all([
+        adminApi.getStats(),
+        adminApi.getAllUsers()
+      ]);
+
+      setStats(statsRes.data || {});
+      // Get 3 most recent users
+      const allUsers = usersRes.data || [];
+      setRecentUsers(allUsers.slice(0, 3));
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="p-6 space-y-8 max-w-7xl mx-auto">
@@ -47,7 +64,12 @@ const AdminDashboard = () => {
 
       {/* 2. Key Performance Indicators (KPIs) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((item, i) => (
+        {[
+          { label: 'Total Patients', value: stats.totalPatients, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
+          { label: 'Active Doctors', value: stats.totalDoctors, icon: UserCheck, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+          { label: 'Monthly Revenue', value: stats.monthlyRevenue, icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50', isCurrency: true },
+          { label: 'Pending Verifications', value: stats.pendingVerifications, icon: ShieldAlert, color: 'text-amber-600', bg: 'bg-amber-50' },
+        ].map((item, i) => (
           <div key={i} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <div className={`${item.bg} ${item.color} w-12 h-12 rounded-xl flex items-center justify-center mb-4`}>
               <item.icon size={24} />
@@ -86,12 +108,16 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {recentUsers.map((u) => (
-                  <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-slate-900">{u.name}</span>
-                        <span className="text-xs text-slate-400">{u.id}</span>
+              {loading ? (
+                <tr>
+                  <td colSpan="4" className="p-8 text-center text-slate-500">Loading users...</td>
+                </tr>
+              ) : recentUsers.map((u) => (
+                <tr key={u._id} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col">
+                      <span className="font-bold text-slate-900">{u.name}</span>
+                      <span className="text-xs text-slate-400">{u.email}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">

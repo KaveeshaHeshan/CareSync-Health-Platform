@@ -8,10 +8,11 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-import Button from '../ui/Button';
-import FormInput from '../shared/FormInput';
-import FormSelect from '../shared/FormSelect';
-import NotificationToast from '../shared/NotificationToast';
+import Button from '../../components/ui/Button';
+import FormInput from '../../components/forms/FormInput';
+import FormSelect from '../../components/forms/FormSelect';
+import NotificationToast from '../../components/shared/NotificationToast';
+import authApi from '../../api/authApi';
 
 // 1. Define the Validation Schema
 const registerSchema = z.object({
@@ -20,19 +21,32 @@ const registerSchema = z.object({
   role: z.enum(['patient', 'doctor'], {
     errorMap: () => ({ message: 'Please select your role' }),
   }),
-  // Conditional: Only required if role is doctor
-  licenseNumber: z.string().optional().refine((val, ctx) => {
-    if (ctx.parent?.role === 'doctor' && (!val || val.length < 5)) return false;
-    return true;
-  }, { message: 'Valid License Number is required for doctors' }),
+  // Conditional: Only required if role is doctor (validated in superRefine)
+  licenseNumber: z.string().optional(),
   password: z.string()
     .min(8, 'Password must be at least 8 characters')
     .regex(/[A-Z]/, 'Must contain at least one uppercase letter')
     .regex(/[0-9]/, 'Must contain at least one number'),
   confirmPassword: z.string()
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
+}).superRefine((data, ctx) => {
+  if (data.role === 'doctor') {
+    const license = (data.licenseNumber ?? '').trim();
+    if (license.length < 5) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Valid License Number is required for doctors',
+        path: ['licenseNumber'],
+      });
+    }
+  }
+
+  if (data.password !== data.confirmPassword) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Passwords don't match",
+      path: ['confirmPassword'],
+    });
+  }
 });
 
 const RegisterForm = () => {
@@ -52,12 +66,24 @@ const RegisterForm = () => {
     setIsLoading(true);
     setError(null);
     try {
-      console.log('Registering user:', data);
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const payload = {
+        name: data.fullName,
+        email: data.email,
+        password: data.password,
+        role: (data.role || 'patient').toUpperCase(),
+      };
+
+      await authApi.register(payload);
+
       // Success! Redirect to login or onboarding
       navigate('/login', { state: { message: 'Account created! Please log in.' } });
     } catch (err) {
-      setError('Registration failed. This email may already be in use.');
+      const msg =
+        err?.response?.data?.msg ||
+        err?.response?.data?.message ||
+        err?.message ||
+        'Registration failed. This email may already be in use.';
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -161,16 +187,6 @@ const RegisterForm = () => {
           Create Account
         </Button>
       </form>
-
-      <p className="mt-6 text-center text-sm text-slate-500">
-        Already have an account?{' '}
-        <button 
-          onClick={() => navigate('/login')} 
-          className="font-bold text-indigo-600 hover:underline"
-        >
-          Sign In
-        </button>
-      </p>
     </div>
   );
 };

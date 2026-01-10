@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, 
   Filter, 
@@ -11,46 +11,84 @@ import {
 } from 'lucide-react';
 
 // Logic & Tools
-import { useAuth } from '../../hooks/useAuth'; //
-import { formatDate } from '../../utils/formatters'; //
+import { useAuth } from '../../hooks/useAuth';
+import { formatDate } from '../../utils/formatters';
+import appointmentApi from '../../api/appointmentApi';
+import labApi from '../../api/labApi';
 
 const HistoryPage = () => {
   const { user } = useAuth();
   const [filterType, setFilterType] = useState('All');
+  const [medicalHistory, setMedicalHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ consultations: 0, labReports: 0, prescriptions: 0 });
 
-  // Mock data representing the Consultation & Results features
-  const medicalHistory = [
-    {
-      id: 'REC-001',
-      date: '2025-11-15',
-      doctor: 'Dr. Sarah Mitchell',
-      specialty: 'Cardiology',
-      type: 'Consultation',
-      reason: 'Regular Heart Checkup',
-      status: 'Completed',
-      attachment: true
-    },
-    {
-      id: 'REC-002',
-      date: '2025-10-12',
-      doctor: 'Lab Services',
-      specialty: 'Hematology',
-      type: 'Lab Result',
-      reason: 'Full Blood Count',
-      status: 'Reviewed',
-      attachment: true
-    },
-    {
-      id: 'REC-003',
-      date: '2025-08-05',
-      doctor: 'Dr. James Wilson',
-      specialty: 'Dermatology',
-      type: 'Prescription',
-      reason: 'Skin Rash Treatment',
-      status: 'Completed',
-      attachment: false
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  const fetchHistory = async () => {
+    try {
+      setLoading(true);
+      const [appointmentsRes, labResultsRes, prescriptionsRes] = await Promise.all([
+        appointmentApi.getAppointments().catch(() => ({ data: [] })),
+        labApi.getPatientResults().catch(() => ({ data: [] })),
+        labApi.getMyPrescriptions().catch(() => ({ data: [] }))
+      ]);
+
+      const appointments = appointmentsRes.data || [];
+      const labResults = labResultsRes.data || [];
+      const prescriptions = prescriptionsRes.data || [];
+
+      // Combine all records
+      const allRecords = [
+        ...appointments.map(apt => ({
+          id: apt._id,
+          date: apt.date,
+          doctor: apt.doctor?.name || 'Unknown Doctor',
+          specialty: apt.doctor?.specialization || 'General',
+          type: 'Consultation',
+          reason: apt.reason || 'General consultation',
+          status: apt.status === 'completed' ? 'Completed' : 'Pending',
+          attachment: false
+        })),
+        ...labResults.map(lab => ({
+          id: lab._id,
+          date: lab.createdAt || lab.date,
+          doctor: 'Lab Services',
+          specialty: lab.category || 'General',
+          type: 'Lab Result',
+          reason: lab.testName,
+          status: 'Reviewed',
+          attachment: !!lab.fileUrl
+        })),
+        ...prescriptions.map(rx => ({
+          id: rx._id,
+          date: rx.createdAt,
+          doctor: rx.doctor?.name || 'Unknown Doctor',
+          specialty: rx.doctor?.specialization || 'General',
+          type: 'Prescription',
+          reason: rx.diagnosis || 'Medical prescription',
+          status: rx.status === 'filled' ? 'Completed' : 'Pending',
+          attachment: false
+        }))
+      ];
+
+      // Sort by date descending
+      allRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
+      
+      setMedicalHistory(allRecords);
+      setStats({
+        consultations: appointments.length,
+        labReports: labResults.length,
+        prescriptions: prescriptions.length
+      });
+    } catch (error) {
+      console.error('Failed to fetch medical history:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-8">
@@ -80,15 +118,15 @@ const HistoryPage = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
           <p className="text-xs font-bold text-indigo-600 uppercase tracking-wider">Total Consultations</p>
-          <h3 className="text-2xl font-black text-indigo-900 mt-1">24</h3>
+          <h3 className="text-2xl font-black text-indigo-900 mt-1">{stats.consultations}</h3>
         </div>
         <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
           <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider">Lab Reports</p>
-          <h3 className="text-2xl font-black text-emerald-900 mt-1">12</h3>
+          <h3 className="text-2xl font-black text-emerald-900 mt-1">{stats.labReports}</h3>
         </div>
         <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
           <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">Digital Prescriptions</p>
-          <h3 className="text-2xl font-black text-slate-900 mt-1">08</h3>
+          <h3 className="text-2xl font-black text-slate-900 mt-1">{stats.prescriptions}</h3>
         </div>
       </div>
 
@@ -106,7 +144,15 @@ const HistoryPage = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {medicalHistory.map((record) => (
+              {loading ? (
+                <tr>
+                  <td colSpan="6" className="p-8 text-center text-slate-500">Loading medical history...</td>
+                </tr>
+              ) : medicalHistory.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="p-8 text-center text-slate-500">No medical records found</td>
+                </tr>
+              ) : medicalHistory.map((record) => (
                 <tr key={record.id} className="hover:bg-slate-50/50 transition-colors group">
                   <td className="px-6 py-5">
                     <div className="flex flex-col">

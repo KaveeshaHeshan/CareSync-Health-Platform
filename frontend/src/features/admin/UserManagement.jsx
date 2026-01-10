@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, 
   UserPlus, 
@@ -17,22 +17,32 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Input from '../../components/ui/Input';
+import adminApi from '../../api/adminApi';
 
 const UserManagement = () => {
   const [activeTab, setActiveTab] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock user data
-  const users = [
-    { id: 1, name: 'Dr. Sarah Johnson', email: 's.johnson@caresync.com', role: 'Doctor', status: 'Active', verified: true },
-    { id: 2, name: 'Alexander Thompson', email: 'alex.t@gmail.com', role: 'Patient', status: 'Active', verified: true },
-    { id: 3, name: 'Marcus Vane', email: 'm.vane@caresync.com', role: 'Admin', status: 'Active', verified: true },
-    { id: 4, name: 'Dr. Emily Blunt', email: 'e.blunt@caresync.com', role: 'Doctor', status: 'Pending', verified: false },
-    { id: 5, name: 'John Doe', email: 'j.doe@outlook.com', role: 'Patient', status: 'Inactive', verified: true },
-  ];
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await adminApi.getAllUsers();
+      setUsers(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredUsers = users.filter(user => {
-    const matchesTab = activeTab === 'All' || user.role === activeTab;
+    const matchesTab = activeTab === 'All' || user.role.toUpperCase() === activeTab.toUpperCase();
     const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           user.email.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesTab && matchesSearch;
@@ -88,8 +98,16 @@ const UserManagement = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {filteredUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-indigo-50/20 transition-colors group">
+              {loading ? (
+                <tr>
+                  <td colSpan="5" className="p-8 text-center text-slate-500">Loading users...</td>
+                </tr>
+              ) : filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="p-8 text-center text-slate-500">No users found</td>
+                </tr>
+              ) : filteredUsers.map((user) => (
+                <tr key={user._id} className="hover:bg-indigo-50/20 transition-colors group">
                   <td className="p-5">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-sm border-2 border-white shadow-sm">

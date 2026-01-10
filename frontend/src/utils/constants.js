@@ -6,7 +6,7 @@
 
 // 1. API Configuration
 export const API_CONFIG = {
-  BASE_URL: process.env.REACT_APP_API_URL || 'https://api.caresync-med.v1',
+  BASE_URL: import.meta.env.VITE_API_URL || 'https://api.caresync-med.v1',
   TIMEOUT: 10000,
   ENDPOINTS: {
     AUTH: '/auth',

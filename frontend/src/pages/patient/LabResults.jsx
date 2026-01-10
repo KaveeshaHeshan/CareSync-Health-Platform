@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FileText, 
   TrendingUp, 
@@ -10,19 +10,31 @@ import {
 } from 'lucide-react';
 
 // Logic & Tools
-import { useAuth } from '../../hooks/useAuth'; //
-import { formatDate } from '../../utils/formatters'; //
+import { useAuth } from '../../hooks/useAuth';
+import { formatDate } from '../../utils/formatters';
+import labApi from '../../api/labApi';
 
 const LabResults = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('All');
+  const [recentTests, setRecentTests] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data representing the Results feature
-  const recentTests = [
-    { id: 'LAB-992', name: 'Lipid Panel', date: '2025-12-20', status: 'Normal', value: '180 mg/dL', trend: 'Stable' },
-    { id: 'LAB-985', name: 'Blood Glucose (A1C)', date: '2025-11-05', status: 'Abnormal', value: '7.2%', trend: 'Increasing' },
-    { id: 'LAB-970', name: 'Vitamin D', date: '2025-10-15', status: 'Normal', value: '45 ng/mL', trend: 'Stable' },
-  ];
+  useEffect(() => {
+    fetchLabResults();
+  }, []);
+
+  const fetchLabResults = async () => {
+    try {
+      setLoading(true);
+      const response = await labApi.getPatientResults();
+      setRecentTests(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch lab results:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-8">
@@ -77,36 +89,40 @@ const LabResults = () => {
         </div>
 
         <div className="grid grid-cols-1 gap-4">
-          {recentTests.map((test) => (
-            <div key={test.id} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 group hover:border-indigo-200 transition-all">
+          {loading ? (
+            <div className="p-8 text-center text-slate-500">Loading lab results...</div>
+          ) : recentTests.length === 0 ? (
+            <div className="p-8 text-center text-slate-500">No lab results available</div>
+          ) : recentTests.map((test) => (
+            <div key={test._id} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 group hover:border-indigo-200 transition-all">
               <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-xl ${test.status === 'Abnormal' ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                <div className={`p-3 rounded-xl ${test.isCritical ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'}`}>
                   <FileText size={24} />
                 </div>
                 <div>
                   <h4 className="font-bold text-slate-900 flex items-center gap-2">
-                    {test.name}
-                    {test.status === 'Abnormal' && <AlertCircle size={14} className="text-amber-500" />}
+                    {test.testName}
+                    {test.isCritical && <AlertCircle size={14} className="text-amber-500" />}
                   </h4>
-                  <p className="text-xs text-slate-500">Ref: {test.id} • {formatDate(test.date, 'short')}</p>
+                  <p className="text-xs text-slate-500">{formatDate(test.createdAt || test.date, 'short')}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-3 gap-8 items-center flex-1 max-w-xl">
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Result</p>
-                  <p className={`text-sm font-black ${test.status === 'Abnormal' ? 'text-amber-600' : 'text-slate-900'}`}>
-                    {test.value}
+                  <p className={`text-sm font-black ${test.isCritical ? 'text-amber-600' : 'text-slate-900'}`}>
+                    {test.result || test.resultSummary || 'Pending'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Trend</p>
-                  <p className="text-sm font-bold text-slate-700">{test.trend}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Type</p>
+                  <p className="text-sm font-bold text-slate-700">{test.testType || test.category || 'General'}</p>
                 </div>
                 <div className="hidden md:block">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</p>
                   <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
-                    test.status === 'Normal' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
+                    test.status === 'completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
                   }`}>
                     {test.status}
                   </span>
@@ -114,9 +130,11 @@ const LabResults = () => {
               </div>
 
               <div className="flex gap-2">
-                <button className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all border border-transparent hover:border-indigo-100">
-                  <Download size={20} />
-                </button>
+                {test.fileUrl && (
+                  <a href={test.fileUrl} target="_blank" rel="noopener noreferrer" className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all border border-transparent hover:border-indigo-100">
+                    <Download size={20} />
+                  </a>
+                )}
                 <button className="p-2.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all">
                   <ChevronRight size={20} />
                 </button>

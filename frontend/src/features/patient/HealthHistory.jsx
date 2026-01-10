@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FileText, 
   Search, 
@@ -15,45 +15,41 @@ import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
+import appointmentApi from '../../api/appointmentApi';
 
 const HealthHistory = () => {
   const [activeFilter, setActiveFilter] = useState('All');
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data representing the patient's records
-  const records = [
-    {
-      id: 1,
-      category: 'Diagnosis',
-      title: 'Chronic Hypertension',
-      date: 'Dec 12, 2025',
-      provider: 'Dr. Sarah Johnson',
-      status: 'Active',
-      variant: 'danger',
-      icon: Activity,
-    },
-    {
-      id: 2,
-      category: 'Surgery',
-      title: 'Laparoscopic Appendectomy',
-      date: 'Aug 05, 2024',
-      provider: 'City General Hospital',
-      status: 'Recovered',
-      variant: 'success',
-      icon: AlertCircle,
-    },
-    {
-      id: 3,
-      category: 'Immunization',
-      title: 'COVID-12 Booster',
-      date: 'Jan 15, 2026',
-      provider: 'Community Clinic',
-      status: 'Completed',
-      variant: 'info',
-      icon: Stethoscope,
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  const fetchHistory = async () => {
+    try {
+      setLoading(true);
+      const response = await appointmentApi.getAppointments();
+      // Transform appointments to history records
+      const historyRecords = (response.data || []).map(apt => ({
+        id: apt._id,
+        category: 'Consultation',
+        title: apt.reason || 'General Consultation',
+        date: new Date(apt.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        provider: apt.doctor?.name || 'Unknown Doctor',
+        status: apt.status === 'completed' ? 'Completed' : apt.status === 'cancelled' ? 'Cancelled' : 'Scheduled',
+        variant: apt.status === 'completed' ? 'success' : apt.status === 'cancelled' ? 'danger' : 'info',
+        icon: Stethoscope,
+      }));
+      setRecords(historyRecords);
+    } catch (error) {
+      console.error('Failed to fetch history:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const categories = ['All', 'Diagnosis', 'Surgery', 'Immunization', 'Lab Results'];
+  const categories = ['All', 'Consultation', 'Diagnosis', 'Surgery', 'Immunization', 'Lab Results'];
   const filteredRecords = activeFilter === 'All' 
     ? records 
     : records.filter(r => r.category === activeFilter);
@@ -95,6 +91,14 @@ const HealthHistory = () => {
       </div>
 
       {/* 2. Timeline View */}
+      {loading ? (
+        <div className="py-20 text-center">
+          <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <Clock size={32} className="text-slate-300" />
+          </div>
+          <p className="text-slate-500 text-sm">Loading your medical history...</p>
+        </div>
+      ) : (
       <div className="relative space-y-8 before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-slate-100">
         {filteredRecords.map((item) => (
           <div key={item.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
@@ -135,6 +139,7 @@ const HealthHistory = () => {
           </div>
         ))}
       </div>
+      )}
 
       {/* Empty State */}
       {filteredRecords.length === 0 && (

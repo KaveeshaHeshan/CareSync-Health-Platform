@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Calendar, 
@@ -12,26 +12,26 @@ import {
   CreditCard
 } from 'lucide-react';
 
+import { useAuth } from '../../hooks/useAuth';
+
 const Sidebar = ({ userRole = 'patient' }) => {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   
   // Define navigation based on the user's role
   const menuConfig = {
     patient: [
-      { name: 'Dashboard', path: '/patient-dashboard', icon: LayoutDashboard },
-      { name: 'Book Appointment', path: '/book', icon: Calendar },
-      { name: 'My Results', path: '/results', icon: Microscope },
-      { name: 'Payments', path: '/billing', icon: CreditCard },
+      { name: 'Dashboard', path: '/patient/dashboard', icon: LayoutDashboard },
+      { name: 'Book Appointment', path: '/patient/booking', icon: Calendar },
+      { name: 'My Results', path: '/patient/lab-results', icon: Microscope },
+      { name: 'Payments', path: '/billing/checkout', icon: CreditCard },
     ],
     doctor: [
-      { name: 'Overview', path: '/doctor-dashboard', icon: LayoutDashboard },
-      { name: 'Schedule', path: '/schedule', icon: Calendar },
-      { name: 'My Patients', path: '/patients', icon: Stethoscope },
-      { name: 'Prescriptions', path: '/prescriptions', icon: ClipboardList },
+      { name: 'Overview', path: '/doctor/dashboard', icon: LayoutDashboard },
+      { name: 'Schedule', path: '/doctor/schedule', icon: Calendar },
     ],
     admin: [
-      { name: 'Admin Console', path: '/admin-dashboard', icon: LayoutDashboard },
-      { name: 'Manage Users', path: '/manage-users', icon: UserCircle },
-      { name: 'System Stats', path: '/reports', icon: ClipboardList },
+      { name: 'Admin Console', path: '/admin/dashboard', icon: LayoutDashboard },
     ]
   };
 
@@ -44,7 +44,7 @@ const Sidebar = ({ userRole = 'patient' }) => {
         <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-200">
           C
         </div>
-        <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
+        <span className="text-xl font-bold bg-linear-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
           CareSync
         </span>
       </div>
@@ -71,14 +71,30 @@ const Sidebar = ({ userRole = 'patient' }) => {
       {/* Bottom Actions */}
       <div className="p-4 border-t border-slate-50 space-y-2">
         <NavLink
-          to="/profile"
+          to={
+            userRole === 'doctor'
+              ? '/doctor/dashboard'
+              : userRole === 'admin'
+                ? '/admin/dashboard'
+                : '/patient/dashboard'
+          }
           className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 transition-all"
         >
           <Settings size={20} />
           Settings
         </NavLink>
         
-        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all">
+        <button
+          type="button"
+          onClick={async () => {
+            try {
+              await logout();
+            } finally {
+              navigate('/login', { replace: true });
+            }
+          }}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all"
+        >
           <LogOut size={20} />
           Logout
         </button>

@@ -10,6 +10,7 @@ const FormSelect = ({
   icon: Icon, 
   placeholder = "Select an option",
   className = '',
+  onChange,
   ...props 
 }) => {
   
@@ -19,6 +20,16 @@ const FormSelect = ({
   };
 
   const error = getErrorMessage(name, errors);
+
+  // Merge register's onChange with custom onChange
+  const { onChange: registerOnChange, ...registerProps } = register(name);
+  
+  const handleChange = (e) => {
+    registerOnChange(e); // Call react-hook-form's onChange
+    if (onChange) {
+      onChange(e); // Call custom onChange if provided
+    }
+  };
 
   return (
     <div className="w-full space-y-1.5">
@@ -39,7 +50,8 @@ const FormSelect = ({
 
         {/* Select Element */}
         <select
-          {...register(name)}
+          {...registerProps}
+          onChange={handleChange}
           className={`
             w-full appearance-none transition-all duration-200
             bg-white border-2 rounded-xl text-sm

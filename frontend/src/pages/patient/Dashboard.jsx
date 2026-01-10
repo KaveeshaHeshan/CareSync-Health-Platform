@@ -7,6 +7,7 @@ import {
   ArrowRight,
   TrendingUp
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 // Logic & Tools
 import { useAuth } from '../../hooks/useAuth'; //
@@ -14,6 +15,7 @@ import { formatDate } from '../../utils/formatters'; //
 
 const PatientDashboard = () => {
   const { user } = useAuth(); // Access global user state
+  const navigate = useNavigate();
 
   return (
     <div className="p-6 space-y-8 max-w-7xl mx-auto">
@@ -26,7 +28,11 @@ const PatientDashboard = () => {
           <p className="text-slate-500 mt-1">Here is a summary of your health status and upcoming visits.</p>
         </div>
         <div className="flex gap-3">
-          <button className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition-all flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => navigate('/patient/booking')}
+            className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition-all flex items-center gap-2"
+          >
             <Calendar size={18} /> Book Appointment
           </button>
         </div>

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 import { 
   Stethoscope, 
   Calendar as CalendarIcon, 
@@ -14,47 +15,136 @@ import {
 // Relative imports based on your folder structure
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
-import FormSelect from '../../components/shared/FormSelect';
-import FormInput from '../../components/shared/FormInput';
-import NotificationToast from '../../components/shared/NotificationToast';
+import FormSelect from '../../components/forms/FormSelect';
+import FormInput from '../../components/forms/FormInput';
+import appointmentApi from '../../api/appointmentApi';
+import adminApi from '../../api/adminApi';
 
 const BookingFlow = () => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [selectedSlot, setSelectedSlot] = useState('');
+  const [selectedDoctor, setSelectedDoctor] = useState('');
+  const [doctors, setDoctors] = useState([]);
+  const [specialties, setSpecialties] = useState([]);
 
-  const { register, watch, trigger, formState: { errors } } = useForm({
+  const { register, watch, trigger, formState: { errors }, getValues } = useForm({
     mode: 'onChange'
   });
 
-  // Mock data for the demonstration
-  const specialties = [
-    { value: 'general', label: 'General Medicine' },
-    { value: 'cardiology', label: 'Cardiology' },
-    { value: 'pediatrics', label: 'Pediatrics' },
-    { value: 'neurology', label: 'Neurology' },
-  ];
+  const watchedDate = watch('date');
 
-  const timeSlots = ['09:00 AM', '10:30 AM', '01:00 PM', '02:30 PM', '04:15 PM'];
+  useEffect(() => {
+    fetchDoctors();
+  }, []);
+
+  useEffect(() => {
+    if (watchedDate && selectedDoctor) {
+      fetchAvailableSlots(selectedDoctor, watchedDate);
+    }
+  }, [watchedDate, selectedDoctor]);
+
+  const fetchDoctors = async () => {
+    try {
+      const response = await adminApi.getDoctors();
+      const doctorsList = response.data || [];
+      setDoctors(doctorsList);
+      
+      // Create specialties list from doctors
+      const uniqueSpecializations = [...new Set(doctorsList.map(d => d.specialization).filter(Boolean))];
+      const specialtiesOptions = uniqueSpecializations.map(spec => ({
+        value: spec.toLowerCase().replace(/\s+/g, '-'),
+        label: spec,
+        doctors: doctorsList.filter(d => d.specialization === spec)
+      }));
+      
+      setSpecialties(specialtiesOptions);
+    } catch (error) {
+      console.error('Failed to fetch doctors:', error);
+    }
+  };
+
+  const fetchAvailableSlots = async (doctorId, date) => {
+    try {
+      const response = await appointmentApi.getAvailableSlots(doctorId, date);
+      setAvailableSlots(response.availableSlots || []);
+    } catch (error) {
+      console.error('Failed to fetch slots:', error);
+      setAvailableSlots([]);
+    }
+  };
+
+  const handleSpecialtyChange = (e) => {
+    const selectedSpec = specialties.find(s => s.value === e.target.value);
+    if (selectedSpec && selectedSpec.doctors && selectedSpec.doctors.length > 0) {
+      // Select the first doctor from this specialty
+      setSelectedDoctor(selectedSpec.doctors[0]._id);
+    }
+  };
 
   // Navigation Logic
   const nextStep = async () => {
     // Validate current step before proceeding
-    const fieldsToValidate = step === 1 ? ['specialty'] : step === 2 ? ['date', 'time'] : [];
-    const isValid = await trigger(fieldsToValidate);
-    if (isValid) setStep(s => s + 1);
+    if (step === 1) {
+      if (!selectedDoctor) {
+        alert('Please select a specialty');
+        return;
+      }
+      setStep(s => s + 1);
+    } else if (step === 2) {
+      const formData = getValues();
+      if (!formData.date) {
+        alert('Please select a date');
+        return;
+      }
+      if (!selectedSlot) {
+        alert('Please select a time slot');
+        return;
+      }
+      setStep(s => s + 1);
+    } else {
+      setStep(s => s + 1);
+    }
   };
 
   const prevStep = () => setStep(s => s - 1);
 
-  const handleFinalSubmit = async (data) => {
+  const handleFinalSubmit = async () => {
+    if (!selectedDoctor) {
+      alert('Please select a specialty');
+      return;
+    }
+    if (!selectedSlot) {
+      alert('Please select a time slot');
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
-      // API call would go here: await patientApi.bookAppointment(data);
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const formData = getValues();
+      
+      if (!formData.date) {
+        alert('Please select a date');
+        return;
+      }
+      
+      const appointmentData = {
+        doctorId: selectedDoctor,
+        date: formData.date,
+        time: selectedSlot,
+        reason: formData.notes || 'General consultation',
+        type: 'in-person'
+      };
+      
+      console.log('Booking appointment with data:', appointmentData);
+      await appointmentApi.bookAppointment(appointmentData);
       setIsSuccess(true);
     } catch (err) {
-      console.error("Booking failed", err);
+      console.error('Booking failed', err);
+      alert('Failed to book appointment. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -68,9 +158,14 @@ const BookingFlow = () => {
         </div>
         <h2 className="text-2xl font-black text-slate-800">Booking Confirmed!</h2>
         <p className="text-slate-500 mt-2">Your appointment request has been sent to the clinic. You will receive a confirmation via email shortly.</p>
-        <Button variant="primary" className="mt-8" onClick={() => window.location.reload()}>
-          Return to Dashboard
-        </Button>
+        <div className="flex gap-4 justify-center mt-8">
+          <Button variant="secondary" onClick={() => navigate('/patient/history')}>
+            View My Appointments
+          </Button>
+          <Button variant="primary" onClick={() => navigate('/patient/dashboard')}>
+            Go to Dashboard
+          </Button>
+        </div>
       </Card>
     );
   }
@@ -99,7 +194,7 @@ const BookingFlow = () => {
         title={step === 1 ? "Choose Specialty" : step === 2 ? "Select Schedule" : "Visit Details"}
         subtitle={`Step ${step} of 3`}
       >
-        <div className="min-h-[300px]">
+        <div className="min-h-75">
           {/* STEP 1: Provider Selection */}
           {step === 1 && (
             <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
@@ -111,6 +206,7 @@ const BookingFlow = () => {
                 options={specialties}
                 register={register}
                 errors={errors}
+                onChange={handleSpecialtyChange}
               />
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex gap-4">
                 <AlertCircle className="text-indigo-500 shrink-0" size={20} />
@@ -135,19 +231,28 @@ const BookingFlow = () => {
               <div className="space-y-3">
                 <label className="text-sm font-semibold text-slate-700 ml-1 flex items-center gap-2">
                   <Clock size={16} className="text-slate-400" />
-                  Available Time Slots
+                  Available Time Slots {selectedSlot && <span className="text-indigo-600">- Selected: {selectedSlot}</span>}
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {timeSlots.map(time => (
-                    <button 
-                      key={time} 
-                      type="button"
-                      className="py-3 px-2 text-xs font-bold border-2 border-slate-100 rounded-xl hover:border-indigo-600 hover:text-indigo-600 hover:bg-indigo-50 transition-all"
-                    >
-                      {time}
-                    </button>
-                  ))}
-                </div>
+                {availableSlots.length === 0 ? (
+                  <p className="text-sm text-slate-500 text-center py-4">Please select a date to see available slots</p>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {availableSlots.map(time => (
+                      <button 
+                        key={time} 
+                        type="button"
+                        onClick={() => setSelectedSlot(time)}
+                        className={`py-3 px-2 text-xs font-bold border-2 rounded-xl transition-all ${
+                          selectedSlot === time
+                            ? 'border-indigo-600 bg-indigo-50 text-indigo-600'
+                            : 'border-slate-100 hover:border-indigo-600 hover:text-indigo-600 hover:bg-indigo-50'
+                        }`}
+                      >
+                        {time}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -10,21 +10,42 @@ import {
 } from 'lucide-react';
 
 // Logic & Tools
-import { useUIStore } from '../../store/useUIStore'; //
-import { formatDate } from '../../utils/formatters'; //
+import { useUIStore } from '../../store/useUIStore';
+import { formatDate } from '../../utils/formatters';
+import appointmentApi from '../../api/appointmentApi';
 
 const SchedulePage = () => {
-  const openModal = useUIStore((state) => state.openModal); //
+  const openModal = useUIStore((state) => state.openModal);
   const [viewType, setViewType] = useState('Week');
+  const [timeSlots, setTimeSlots] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
-  // Mock data for scheduled slots
-  const timeSlots = [
-    { time: '08:00 AM', status: 'Booked', patient: 'Sarah Jennings' },
-    { time: '09:00 AM', status: 'Available', patient: null },
-    { time: '10:00 AM', status: 'Blocked', patient: 'Clinical Meeting' },
-    { time: '11:00 AM', status: 'Booked', patient: 'Michael Chen' },
-    { time: '12:00 PM', status: 'Available', patient: null },
-  ];
+  useEffect(() => {
+    fetchSchedule();
+  }, [selectedDate]);
+
+  const fetchSchedule = async () => {
+    try {
+      setLoading(true);
+      const response = await appointmentApi.getAppointments();
+      const appointments = response.data || [];
+      
+      // Transform appointments to time slots
+      const slots = appointments.map(apt => ({
+        time: apt.time,
+        status: apt.status === 'confirmed' ? 'Booked' : apt.status === 'cancelled' ? 'Blocked' : 'Available',
+        patient: apt.patient?.name || null,
+        appointmentId: apt._id
+      }));
+      
+      setTimeSlots(slots);
+    } catch (error) {
+      console.error('Failed to fetch schedule:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-8">
@@ -78,7 +99,11 @@ const SchedulePage = () => {
 
       {/* 3. Daily Schedule Grid */}
       <div className="grid grid-cols-1 gap-4">
-        {timeSlots.map((slot, index) => (
+        {loading ? (
+          <div className="p-8 text-center text-slate-500">Loading schedule...</div>
+        ) : timeSlots.length === 0 ? (
+          <div className="p-8 text-center text-slate-500">No appointments scheduled</div>
+        ) : timeSlots.map((slot, index) => (
           <div 
             key={index} 
             className={`group p-4 rounded-2xl border transition-all flex items-center justify-between ${

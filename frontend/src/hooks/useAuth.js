@@ -1,11 +1,12 @@
 import { useContext } from 'react';
 // Imports the context from the feature directory
 import { AuthContext } from '../features/auth/AuthContext';
+import { ROLES } from '../utils/constants';
 
 /**
  * Hook for easy access to login/logout/user state
  */
-const useAuth = () => {
+export const useAuth = () => {
   const context = useContext(AuthContext);
 
   if (!context) {
@@ -14,14 +15,16 @@ const useAuth = () => {
 
   return {
     user: context.user,
-    isAuthenticated: !!context.user,
+    isAuthenticated: context.isAuthenticated ?? !!context.user,
     login: context.login,
+    register: context.register,
     logout: context.logout,
     isLoading: context.isLoading,
-    // Role helpers based on your UserManagement roles
-    isDoctor: context.user?.role === 'Doctor',
-    isAdmin: context.user?.role === 'Admin',
-    isPatient: context.user?.role === 'Patient',
+    isInitialLoading: context.isInitialLoading,
+    // Role helpers
+    isDoctor: context.user?.role === ROLES.DOCTOR,
+    isAdmin: context.user?.role === ROLES.ADMIN,
+    isPatient: context.user?.role === ROLES.PATIENT,
   };
 };
 

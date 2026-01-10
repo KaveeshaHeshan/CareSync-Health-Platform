@@ -5,9 +5,11 @@ import { z } from 'zod';
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-import Button from '../ui/Button';
-import FormInput from '../shared/FormInput';
-import NotificationToast from '../shared/NotificationToast';
+import { useAuth } from '../../hooks/useAuth';
+
+import Button from '../../components/ui/Button';
+import FormInput from '../../components/forms/FormInput';
+import NotificationToast from '../../components/shared/NotificationToast';
 
 // 1. Define the Validation Schema
 const loginSchema = z.object({
@@ -17,8 +19,9 @@ const loginSchema = z.object({
 
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const { login, isLoading } = useAuth();
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -31,25 +34,35 @@ const LoginForm = () => {
 
   // 3. Handle Submit
   const onSubmit = async (data) => {
-    setIsLoading(true);
     setError(null);
 
     try {
-      // MOCK API CALL - Replace with your actual auth service
-      // await authService.login(data);
-      console.log('Logging in with:', data);
-      
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const response = await login(data);
 
-      // Redirect to the page they tried to visit, or the dashboard
-      const from = location.state?.from?.pathname || '/patient-dashboard';
-      navigate(from, { replace: true });
-      
+      const rawFrom = location.state?.from?.pathname;
+      const from = rawFrom === '/patient-dashboard' ? '/patient/dashboard' : rawFrom;
+
+      const role = response?.user?.role;
+      const fallback =
+        role === 'DOCTOR'
+          ? '/doctor/dashboard'
+          : role === 'ADMIN'
+            ? '/admin/dashboard'
+            : '/patient/dashboard';
+
+      // Redirect to the page they tried to visit, or a role-based dashboard.
+      // Avoid redirecting back to auth pages.
+      const destination = from && !from.startsWith('/login') && !from.startsWith('/register') ? from : fallback;
+      navigate(destination, { replace: true });
     } catch (err) {
-      setError('Invalid email or password. Please try again.');
+      const msg =
+        err?.response?.data?.msg ||
+        err?.response?.data?.message ||
+        err?.message ||
+        'Invalid email or password. Please try again.';
+      setError(msg);
     } finally {
-      setIsLoading(false);
+      // isLoading is managed by AuthContext
     }
   };
 
@@ -124,17 +137,6 @@ const LoginForm = () => {
           Sign In to CareSync
         </Button>
       </form>
-
-      {/* Footer link */}
-      <p className="mt-8 text-center text-sm text-slate-500">
-        Don't have an account?{' '}
-        <button 
-          onClick={() => navigate('/register')} 
-          className="font-bold text-indigo-600 hover:underline"
-        >
-          Create an account
-        </button>
-      </p>
     </div>
   );
 };
