@@ -31,10 +31,16 @@ import CancelPage from './pages/billing/CancelPage';
 // 7. Fallback
 import NotFound from './pages/NotFound';
 
+// 8. Home Page
+import HomePage from './pages/HomePage';
+
 const App = () => {
   return (
     <Router>
       <Routes>
+        {/* --- HOME PAGE --- */}
+        <Route path="/" element={<HomePage />} />
+        
         {/* --- PUBLIC ROUTES --- */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
@@ -70,7 +76,6 @@ const App = () => {
         </Route>
 
         {/* --- GLOBAL REDIRECTS & 404 --- */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

@@ -20,6 +20,9 @@ const loginSchema = z.object({
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetSuccess, setResetSuccess] = useState(false);
 
   const { login, isLoading } = useAuth();
   
@@ -66,6 +69,28 @@ const LoginForm = () => {
     }
   };
 
+  // 4. Handle Forgot Password
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!resetEmail) {
+      setError('Please enter your email address');
+      return;
+    }
+    
+    try {
+      // TODO: Implement actual password reset API call
+      // await resetPassword(resetEmail);
+      setResetSuccess(true);
+      setTimeout(() => {
+        setShowForgotPassword(false);
+        setResetSuccess(false);
+        setResetEmail('');
+      }, 3000);
+    } catch (err) {
+      setError('Failed to send reset email. Please try again.');
+    }
+  };
+
   return (
     <div className="w-full">
       {/* Error Toast */}
@@ -76,6 +101,62 @@ const LoginForm = () => {
           description={error} 
           onClose={() => setError(null)} 
         />
+      )}
+
+      {/* Success Toast */}
+      {resetSuccess && (
+        <NotificationToast 
+          type="success" 
+          message="Email Sent!" 
+          description="Password reset instructions have been sent to your email." 
+          onClose={() => setResetSuccess(false)} 
+        />
+      )}
+
+      {/* Forgot Password Modal */}
+      {showForgotPassword && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+            <h3 className="text-2xl font-bold text-slate-900 mb-2">Reset Password</h3>
+            <p className="text-slate-500 mb-6">
+              Enter your email address and we'll send you instructions to reset your password.
+            </p>
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  placeholder="name@hospital.com"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setShowForgotPassword(false);
+                    setResetEmail('');
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1"
+                >
+                  Send Reset Link
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -121,7 +202,11 @@ const LoginForm = () => {
             />
             <span className="text-sm text-slate-500 group-hover:text-slate-700 transition-colors">Remember me</span>
           </label>
-          <button type="button" className="text-sm font-bold text-indigo-600 hover:text-indigo-700 transition-colors">
+          <button 
+            type="button" 
+            onClick={() => setShowForgotPassword(true)}
+            className="text-sm font-bold text-indigo-600 hover:text-indigo-700 transition-colors hover:underline"
+          >
             Forgot password?
           </button>
         </div>
