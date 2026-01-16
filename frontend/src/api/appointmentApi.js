@@ -1,66 +1,104 @@
 import axiosInstance from './axiosInstance';
 
-/**
- * Appointment API Service for CareSync
- * Manages the scheduling lifecycle for Patients and Doctors.
- */
 const appointmentApi = {
-  /**
-   * Fetch all appointments (Filtered by user role on the backend)
-   */
-  getAppointments: async () => {
-    const response = await axiosInstance.get('/appointments');
+  // Get all appointments (with optional filters)
+  getAll: async (filters = {}) => {
+    const params = new URLSearchParams(filters).toString();
+    const response = await axiosInstance.get(`/appointments${params ? `?${params}` : ''}`);
     return response.data;
   },
 
-  /**
-   * Get detailed information for a specific appointment
-   * (Used for tele-consultation rooms and summary views)
-   * @param {string} id - Appointment ID
-   */
-  getAppointmentDetails: async (id) => {
-    const response = await axiosInstance.get(`/appointments/${id}`);
+  // Get appointment by ID
+  getById: async (appointmentId) => {
+    const response = await axiosInstance.get(`/appointments/${appointmentId}`);
     return response.data;
   },
 
-  /**
-   * Book a new appointment
-   * @param {Object} appointmentData - { doctorId, date, time, reason, type }
-   */
-  bookAppointment: async (appointmentData) => {
+  // Create new appointment
+  create: async (appointmentData) => {
     const response = await axiosInstance.post('/appointments', appointmentData);
     return response.data;
   },
 
-  /**
-   * Update appointment status (Confirm, Cancel, or Complete)
-   * @param {string} id - Appointment ID
-   * @param {string} status - 'confirmed', 'cancelled', or 'completed'
-   */
-  updateStatus: async (id, status) => {
-    const response = await axiosInstance.patch(`/appointments/${id}/status`, { status });
+  // Update appointment
+  update: async (appointmentId, appointmentData) => {
+    const response = await axiosInstance.put(`/appointments/${appointmentId}`, appointmentData);
     return response.data;
   },
 
-  /**
-   * Get available time slots for a specific doctor
-   * @param {string} doctorId 
-   * @param {string} date - Format: YYYY-MM-DD
-   */
+  // Delete/Cancel appointment
+  cancel: async (appointmentId) => {
+    const response = await axiosInstance.delete(`/appointments/${appointmentId}`);
+    return response.data;
+  },
+
+  // Update appointment status
+  updateStatus: async (appointmentId, status) => {
+    const response = await axiosInstance.patch(`/appointments/${appointmentId}/status`, { status });
+    return response.data;
+  },
+
+  // Get appointments by patient ID
+  getByPatient: async (patientId) => {
+    const response = await axiosInstance.get(`/appointments/patient/${patientId}`);
+    return response.data;
+  },
+
+  // Get appointments by doctor ID
+  getByDoctor: async (doctorId) => {
+    const response = await axiosInstance.get(`/appointments/doctor/${doctorId}`);
+    return response.data;
+  },
+
+  // Get my appointments (current user)
+  getMyAppointments: async () => {
+    const response = await axiosInstance.get('/appointments/my-appointments');
+    return response.data;
+  },
+
+  // Get available time slots for a doctor
   getAvailableSlots: async (doctorId, date) => {
-    const response = await axiosInstance.get(`/appointments/slots/${doctorId}?date=${date}`);
+    const response = await axiosInstance.get(`/appointments/slots/${doctorId}`, {
+      params: { date }
+    });
     return response.data;
   },
 
-  /**
-   * Cancel an appointment (Patient or Doctor)
-   * @param {string} id - Appointment ID
-   * @param {string} reason - Optional reason for cancellation
-   */
-  cancelAppointment: async (id, reason) => {
-    const response = await axiosInstance.delete(`/appointments/${id}`, { data: { reason } });
+  // Confirm appointment
+  confirm: async (appointmentId) => {
+    const response = await axiosInstance.patch(`/appointments/${appointmentId}/confirm`);
     return response.data;
-  }
+  },
+
+  // Complete appointment
+  complete: async (appointmentId, completionData) => {
+    const response = await axiosInstance.patch(`/appointments/${appointmentId}/complete`, completionData);
+    return response.data;
+  },
+
+  // Add prescription to appointment
+  addPrescription: async (appointmentId, prescriptionData) => {
+    const response = await axiosInstance.post(`/appointments/${appointmentId}/prescription`, prescriptionData);
+    return response.data;
+  },
+
+  // Get upcoming appointments
+  getUpcoming: async () => {
+    const response = await axiosInstance.get('/appointments/upcoming');
+    return response.data;
+  },
+
+  // Get past appointments
+  getPast: async () => {
+    const response = await axiosInstance.get('/appointments/past');
+    return response.data;
+  },
+
+  // Reschedule appointment
+  reschedule: async (appointmentId, newDateTime) => {
+    const response = await axiosInstance.patch(`/appointments/${appointmentId}/reschedule`, newDateTime);
+    return response.data;
+  },
 };
 
 export default appointmentApi;

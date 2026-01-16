@@ -1,53 +1,74 @@
 import axiosInstance from './axiosInstance';
 
-/**
- * Authentication API Service for CareSync
- * Handles all user-related security requests
- */
 const authApi = {
-  /**
-   * Register a new user (Patient, Doctor, or Lab)
-   * @param {Object} userData - Contains name, email, password, and role
-   */
+  // Register new user
   register: async (userData) => {
     const response = await axiosInstance.post('/auth/register', userData);
+    
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+    }
+    
     return response.data;
   },
 
-  /**
-   * Log in an existing user
-   * @param {Object} credentials - Contains email and password
-   */
+  // Login user
   login: async (credentials) => {
     const response = await axiosInstance.post('/auth/login', credentials);
-    // Note: The axiosInstance interceptor will handle the token after this
+    
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+    }
+    
     return response.data;
   },
 
-  /**
-   * Get the current logged-in user's profile
-   * Useful for re-authenticating on page refresh
-   */
-  getMe: async () => {
+  // Logout user
+  logout: () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  },
+
+  // Get current logged-in user
+  getCurrentUser: () => {
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user) : null;
+  },
+
+  // Check if user is authenticated
+  isAuthenticated: () => {
+    return !!localStorage.getItem('token');
+  },
+
+  // Get current user from API (fresh data)
+  fetchCurrentUser: async () => {
     const response = await axiosInstance.get('/auth/me');
+    
+    if (response.data.user) {
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+    }
+    
     return response.data;
   },
 
-  /**
-   * Log out the user (optional backend cleanup)
-   */
-  logout: async () => {
-    const response = await axiosInstance.post('/auth/logout');
+  // Update user profile
+  updateProfile: async (userId, profileData) => {
+    const response = await axiosInstance.put(`/auth/profile/${userId}`, profileData);
+    
+    if (response.data.user) {
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+    }
+    
     return response.data;
   },
 
-  /**
-   * Password Reset Request
-   */
-  forgotPassword: async (email) => {
-    const response = await axiosInstance.post('/auth/forgot-password', { email });
+  // Change password
+  changePassword: async (passwordData) => {
+    const response = await axiosInstance.put('/auth/change-password', passwordData);
     return response.data;
-  }
+  },
 };
 
 export default authApi;
