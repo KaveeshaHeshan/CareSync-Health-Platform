@@ -17,9 +17,13 @@ import {
   MapPin,
   Phone,
   Mail,
+  Sparkles,
+  TrendingUp,
+  Zap,
 } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
+import bannerImage from '../assets/banner.jpg';
 
 /**
  * HomePage Component
@@ -144,143 +148,155 @@ const HomePage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-slate-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                C
-              </div>
-              <span className="text-xl font-bold text-slate-900">CareSync</span>
-            </div>
-
-            {/* Navigation Links */}
-            <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-slate-700 hover:text-indigo-600 transition-colors">
-                Features
-              </a>
-              <a href="#how-it-works" className="text-slate-700 hover:text-indigo-600 transition-colors">
-                How It Works
-              </a>
-              <a href="#testimonials" className="text-slate-700 hover:text-indigo-600 transition-colors">
-                Testimonials
-              </a>
-              <a href="#contact" className="text-slate-700 hover:text-indigo-600 transition-colors">
-                Contact
-              </a>
-            </div>
-
-            {/* Auth Buttons */}
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                onClick={() => navigate('/login')}
-                className="hidden sm:flex"
-              >
-                Login
-              </Button>
-              <Button onClick={() => navigate('/register')}>
-                Get Started
-              </Button>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white overflow-hidden">
+      {/* Hero Section with Modern Design */}
+      <section className="relative pt-24 pb-32 px-4 sm:px-6 lg:px-8">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+          <div className="absolute top-0 right-1/4 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+          <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
         </div>
-      </nav>
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-indigo-50 via-white to-purple-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Hero Content */}
-            <div>
-              <div className="inline-block px-4 py-2 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium mb-6">
-                🎉 Welcome to the Future of Healthcare
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Hero Content - Enhanced */}
+            <div className="space-y-8 animate-fade-in-up">
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full text-sm font-medium shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group">
+                <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+                <span>Welcome to the Future of Healthcare</span>
+                <TrendingUp className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </div>
               
-              <h1 className="text-5xl md:text-6xl font-bold text-slate-900 mb-6 leading-tight">
-                Your Health,
-                <span className="text-indigo-600"> Our Priority</span>
+              {/* Main Headline - Gradient Text */}
+              <h1 className="text-6xl md:text-7xl lg:text-8xl font-black leading-tight">
+                <span className="block text-slate-900">Your Health,</span>
+                <span className="block bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent animate-gradient">
+                  Our Priority
+                </span>
               </h1>
               
-              <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-                Connect with top healthcare professionals, book appointments instantly, 
-                and manage your health records all in one secure platform.
+              {/* Description - Enhanced */}
+              <p className="text-xl md:text-2xl text-slate-600 leading-relaxed max-w-xl">
+                Connect with <span className="font-semibold text-indigo-600">1,000+ verified doctors</span>, 
+                book appointments instantly, and manage your health records all in one 
+                <span className="font-semibold text-purple-600"> secure platform</span>.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                <Button
-                  size="lg"
+              {/* CTA Buttons - Modern Design */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button
                   onClick={() => navigate('/register')}
-                  className="flex items-center justify-center gap-2"
+                  className="group relative px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl font-semibold text-lg shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 overflow-hidden"
                 >
-                  Book Appointment
-                  <ArrowRight size={20} />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    Book Appointment
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </button>
+                
+                <button
                   onClick={() => navigate('/register?role=doctor')}
-                  className="flex items-center justify-center gap-2"
+                  className="group px-8 py-4 bg-white text-slate-900 rounded-2xl font-semibold text-lg border-2 border-slate-200 hover:border-indigo-600 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
                 >
-                  Join as Doctor
-                  <Stethoscope size={20} />
-                </Button>
+                  <span className="flex items-center justify-center gap-2">
+                    Join as Doctor
+                    <Stethoscope className="w-5 h-5 text-indigo-600 group-hover:scale-110 transition-transform" />
+                  </span>
+                </button>
               </div>
 
-              {/* Quick Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {/* Quick Stats - Redesigned */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8">
                 {stats.map((stat, index) => (
-                  <div key={index}>
-                    <div className="text-3xl font-bold text-indigo-600">{stat.value}</div>
-                    <div className="text-sm text-slate-600 mt-1">{stat.label}</div>
+                  <div 
+                    key={index} 
+                    className="group relative bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-slate-200/50 hover:border-indigo-300 transition-all duration-300 hover:shadow-lg cursor-pointer"
+                  >
+                    <div className="text-4xl font-black bg-gradient-to-br from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                      {stat.value}
+                    </div>
+                    <div className="text-sm font-medium text-slate-600 mt-1">{stat.label}</div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity -z-10"></div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Hero Image/Illustration */}
-            <div className="relative">
-              <div className="aspect-square rounded-3xl bg-gradient-to-br from-indigo-100 to-purple-100 p-8 shadow-2xl">
-                <div className="w-full h-full rounded-2xl bg-white/80 backdrop-blur-sm flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="inline-flex items-center justify-center w-32 h-32 rounded-full bg-indigo-600 text-white mb-6">
-                      <Heart size={64} />
+            {/* Hero Image - Premium Design */}
+            <div className="relative animate-fade-in-right">
+              {/* Floating Elements */}
+              <div className="absolute -top-10 -left-10 w-32 h-32 bg-indigo-500 rounded-3xl opacity-20 animate-float"></div>
+              <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-purple-500 rounded-full opacity-20 animate-float animation-delay-2000"></div>
+              
+              {/* Main Card */}
+              <div className="relative bg-gradient-to-br from-white to-slate-50 rounded-[3rem] p-8 shadow-2xl border border-slate-200/50 backdrop-blur-xl overflow-hidden group hover:shadow-indigo-200/50 transition-all duration-500">
+                {/* Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                {/* Banner Image */}
+                <div className="relative rounded-3xl overflow-hidden shadow-2xl mb-6">
+                  <img 
+                    src={bannerImage} 
+                    alt="Healthcare Banner" 
+                    className="w-full h-64 object-cover transform group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent"></div>
+                  
+                  {/* Verified Badge Overlay */}
+                  <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-sm rounded-2xl px-4 py-3 shadow-lg flex items-center gap-3">
+                    <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                      <CheckCircle className="w-7 h-7 text-green-600" />
                     </div>
-                    <h3 className="text-2xl font-bold text-slate-900 mb-2">
-                      Healthcare Made Simple
-                    </h3>
-                    <p className="text-slate-600">
-                      Experience seamless healthcare management
-                    </p>
+                    <div>
+                      <div className="text-sm font-bold text-slate-900">Verified Doctors</div>
+                      <div className="text-xs text-slate-600">100% Certified</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Feature Card */}
+                <div className="relative bg-gradient-to-br from-indigo-600 to-purple-600 rounded-3xl p-8 text-white shadow-xl">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center group-hover:rotate-12 transition-transform duration-500">
+                      <Heart className="w-9 h-9" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold">Healthcare Made Simple</h3>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="flex">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star key={star} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          ))}
+                        </div>
+                        <span className="text-sm text-white/90">4.9/5.0 Rating</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-white/90 text-base leading-relaxed">
+                    Experience seamless healthcare management with our cutting-edge platform
+                  </p>
+                  
+                  {/* Video Call Badge */}
+                  <div className="absolute bottom-6 right-6 bg-white/20 backdrop-blur-sm rounded-2xl px-4 py-3 flex items-center gap-2">
+                    <Video className="w-5 h-5 text-blue-300" />
+                    <div className="text-sm">
+                      <div className="font-semibold">Video Calls</div>
+                      <div className="text-xs text-white/80">HD Quality</div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Floating Cards */}
-              <div className="absolute -top-4 -left-4 bg-white rounded-xl shadow-lg p-4 animate-float">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                    <CheckCircle className="text-green-600" size={20} />
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-slate-900">Verified Doctors</div>
-                    <div className="text-xs text-slate-600">100% Certified</div>
-                  </div>
+              {/* Floating Action Buttons */}
+              <div className="absolute -right-4 top-1/4 space-y-4">
+                <div className="w-16 h-16 bg-white rounded-2xl shadow-xl flex items-center justify-center hover:scale-110 transition-transform cursor-pointer">
+                  <Zap className="w-8 h-8 text-indigo-600" />
                 </div>
-              </div>
-
-              <div className="absolute -bottom-4 -right-4 bg-white rounded-xl shadow-lg p-4 animate-float-delayed">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                    <Video className="text-blue-600" size={20} />
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-slate-900">Video Calls</div>
-                    <div className="text-xs text-slate-600">HD Quality</div>
-                  </div>
+                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-xl flex items-center justify-center hover:scale-110 transition-transform cursor-pointer">
+                  <Activity className="w-8 h-8 text-white" />
                 </div>
               </div>
             </div>
