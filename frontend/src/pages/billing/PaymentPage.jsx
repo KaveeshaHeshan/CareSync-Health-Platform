@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useParams } from 'react-router-dom';
 import { 
   CreditCard, 
   Lock, 
@@ -26,7 +26,8 @@ import paymentApi from '../../api/paymentApi';
 const PaymentPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const appointmentId = searchParams.get('appointmentId');
+  const { appointmentId: appointmentIdParam } = useParams();
+  const appointmentId = appointmentIdParam || searchParams.get('appointmentId');
 
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);

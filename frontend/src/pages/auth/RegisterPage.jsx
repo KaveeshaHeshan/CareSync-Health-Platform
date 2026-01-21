@@ -3,8 +3,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import {
   Mail,
   Lock,
-  Eye,
-  EyeOff,
   AlertCircle,
   User,
   Phone,
@@ -46,8 +44,6 @@ const RegisterPage = () => {
   });
   
   // UI state
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [step, setStep] = useState(1); // Multi-step form
@@ -197,49 +193,46 @@ const RegisterPage = () => {
   // Role selection step
   const renderStep1 = () => (
     <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">
-          Choose Your Role
-        </h2>
-        <p className="text-slate-600">
-          Select how you want to use CareSync
-        </p>
+      <div>
+        <h2 className="text-2xl font-bold text-slate-900">Create your account</h2>
+        <p className="mt-1 text-sm text-slate-600">Choose how you want to use CareSync.</p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4">
-        {/* Patient Role */}
+      <div className="grid gap-4 sm:grid-cols-2">
         <button
           type="button"
           onClick={() => selectRole('PATIENT')}
-          className="p-6 border-2 border-slate-200 rounded-xl hover:border-indigo-600 hover:shadow-lg transition-all duration-300 group text-left"
+          className="group relative rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-violet-500"
         >
-          <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-indigo-100 text-indigo-600 mb-4 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-            <User size={24} />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-50 text-violet-700 transition group-hover:bg-violet-600 group-hover:text-white">
+            <User size={22} />
           </div>
-          <h3 className="text-lg font-semibold text-slate-900 mb-2">
-            I'm a Patient
-          </h3>
-          <p className="text-sm text-slate-600">
-            Book appointments, consult with doctors, and manage your health records
-          </p>
+          <div className="mt-4">
+            <div className="text-base font-semibold text-slate-900">Patient</div>
+            <div className="mt-1 text-sm text-slate-600">Book appointments, consult doctors, and manage your records.</div>
+          </div>
         </button>
 
-        {/* Doctor Role */}
         <button
           type="button"
           onClick={() => selectRole('DOCTOR')}
-          className="p-6 border-2 border-slate-200 rounded-xl hover:border-green-600 hover:shadow-lg transition-all duration-300 group text-left"
+          className="group relative rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
         >
-          <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-green-100 text-green-600 mb-4 group-hover:bg-green-600 group-hover:text-white transition-colors">
-            <Stethoscope size={24} />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-fuchsia-50 text-fuchsia-700 transition group-hover:bg-fuchsia-600 group-hover:text-white">
+            <Stethoscope size={22} />
           </div>
-          <h3 className="text-lg font-semibold text-slate-900 mb-2">
-            I'm a Doctor
-          </h3>
-          <p className="text-sm text-slate-600">
-            Manage appointments, consult with patients, and track your practice
-          </p>
+          <div className="mt-4">
+            <div className="text-base font-semibold text-slate-900">Doctor</div>
+            <div className="mt-1 text-sm text-slate-600">Manage your schedule, patients, and consultations.</div>
+          </div>
         </button>
+      </div>
+
+      <div className="text-sm text-slate-600">
+        Already have an account?{' '}
+        <Link to="/login" className="font-medium text-violet-700 hover:text-violet-800 hover:underline">
+          Sign in
+        </Link>
       </div>
     </div>
   );
@@ -247,12 +240,10 @@ const RegisterPage = () => {
   // Basic information step
   const renderStep2 = () => (
     <div className="space-y-6">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">
-          Create Your Account
-        </h2>
-        <p className="text-slate-600">
-          {formData.role === 'DOCTOR' ? 'Join as a Healthcare Provider' : 'Join CareSync Today'}
+      <div>
+        <h2 className="text-2xl font-bold text-slate-900">Account details</h2>
+        <p className="mt-1 text-sm text-slate-600">
+          {formData.role === 'DOCTOR' ? 'Join as a healthcare provider.' : 'Join CareSync in a few steps.'}
         </p>
       </div>
 
@@ -276,7 +267,8 @@ const RegisterPage = () => {
           placeholder="John Doe"
           value={formData.name}
           onChange={handleChange}
-          leftIcon={<User size={18} />}
+          icon={User}
+          className="focus:border-violet-500 focus:ring-violet-500"
           disabled={loading}
           required
         />
@@ -294,7 +286,8 @@ const RegisterPage = () => {
           placeholder="you@example.com"
           value={formData.email}
           onChange={handleChange}
-          leftIcon={<Mail size={18} />}
+          icon={Mail}
+          className="focus:border-violet-500 focus:ring-violet-500"
           disabled={loading}
           autoComplete="email"
           required
@@ -306,28 +299,20 @@ const RegisterPage = () => {
         <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
           Password
         </label>
-        <div className="relative">
-          <Input
-            id="password"
-            type={showPassword ? 'text' : 'password'}
-            name="password"
-            placeholder="At least 6 characters"
-            value={formData.password}
-            onChange={handleChange}
-            leftIcon={<Lock size={18} />}
-            disabled={loading}
-            autoComplete="new-password"
-            required
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-            tabIndex={-1}
-          >
-            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
-        </div>
+        <Input
+          id="password"
+          type="password"
+          name="password"
+          placeholder="At least 6 characters"
+          value={formData.password}
+          onChange={handleChange}
+          icon={Lock}
+          className="focus:border-violet-500 focus:ring-violet-500"
+          disabled={loading}
+          autoComplete="new-password"
+          showPasswordToggle
+          required
+        />
       </div>
 
       {/* Confirm Password Input */}
@@ -335,28 +320,20 @@ const RegisterPage = () => {
         <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-2">
           Confirm Password
         </label>
-        <div className="relative">
-          <Input
-            id="confirmPassword"
-            type={showConfirmPassword ? 'text' : 'password'}
-            name="confirmPassword"
-            placeholder="Re-enter your password"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            leftIcon={<Lock size={18} />}
-            disabled={loading}
-            autoComplete="new-password"
-            required
-          />
-          <button
-            type="button"
-            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-            tabIndex={-1}
-          >
-            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
-        </div>
+        <Input
+          id="confirmPassword"
+          type="password"
+          name="confirmPassword"
+          placeholder="Re-enter your password"
+          value={formData.confirmPassword}
+          onChange={handleChange}
+          icon={Lock}
+          className="focus:border-violet-500 focus:ring-violet-500"
+          disabled={loading}
+          autoComplete="new-password"
+          showPasswordToggle
+          required
+        />
       </div>
 
       {/* Navigation Buttons */}
@@ -366,7 +343,7 @@ const RegisterPage = () => {
           variant="outline"
           onClick={() => setStep(1)}
           disabled={loading}
-          className="flex-1"
+          className="flex-1 border-violet-300 text-violet-700 hover:bg-violet-50 focus:ring-violet-500"
         >
           Back
         </Button>
@@ -374,10 +351,17 @@ const RegisterPage = () => {
           type="button"
           onClick={handleNextStep}
           disabled={loading}
-          className="flex-1"
+          className="flex-1 bg-violet-600 hover:bg-violet-700 focus:ring-violet-500"
         >
           Continue
         </Button>
+      </div>
+
+      <div className="text-sm text-slate-600">
+        Already have an account?{' '}
+        <Link to="/login" className="font-medium text-violet-700 hover:text-violet-800 hover:underline">
+          Sign in
+        </Link>
       </div>
     </div>
   );
@@ -385,13 +369,9 @@ const RegisterPage = () => {
   // Additional details step
   const renderStep3 = () => (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">
-          Complete Your Profile
-        </h2>
-        <p className="text-slate-600">
-          Tell us a bit more about yourself
-        </p>
+      <div>
+        <h2 className="text-2xl font-bold text-slate-900">Complete your profile</h2>
+        <p className="mt-1 text-sm text-slate-600">A few details to personalize your experience.</p>
       </div>
 
       {/* Error Alert */}
@@ -414,7 +394,8 @@ const RegisterPage = () => {
           placeholder="+1 (555) 123-4567"
           value={formData.phone}
           onChange={handleChange}
-          leftIcon={<Phone size={18} />}
+          icon={Phone}
+          className="focus:border-violet-500 focus:ring-violet-500"
           disabled={loading}
           required
         />
@@ -433,7 +414,8 @@ const RegisterPage = () => {
             placeholder="25"
             value={formData.age}
             onChange={handleChange}
-            leftIcon={<Calendar size={18} />}
+            icon={Calendar}
+            className="focus:border-violet-500 focus:ring-violet-500"
             disabled={loading}
             min="1"
             max="120"
@@ -450,7 +432,7 @@ const RegisterPage = () => {
             name="gender"
             value={formData.gender}
             onChange={handleChange}
-            className="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-slate-100 disabled:cursor-not-allowed"
+            className="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent disabled:bg-slate-100 disabled:cursor-not-allowed"
             disabled={loading}
             required
           >
@@ -483,7 +465,8 @@ const RegisterPage = () => {
               placeholder="e.g., Cardiologist, Pediatrician"
               value={formData.specialization}
               onChange={handleChange}
-              leftIcon={<Stethoscope size={18} />}
+              icon={Stethoscope}
+              className="focus:border-violet-500 focus:ring-violet-500"
               disabled={loading}
               required
             />
@@ -502,6 +485,7 @@ const RegisterPage = () => {
                 placeholder="5"
                 value={formData.experience}
                 onChange={handleChange}
+                className="focus:border-violet-500 focus:ring-violet-500"
                 disabled={loading}
                 required
               />
@@ -518,6 +502,7 @@ const RegisterPage = () => {
                 placeholder="100"
                 value={formData.fees}
                 onChange={handleChange}
+                className="focus:border-violet-500 focus:ring-violet-500"
                 disabled={loading}
                 min="0"
                 step="0.01"
@@ -533,16 +518,16 @@ const RegisterPage = () => {
         <input
           type="checkbox"
           id="terms"
-          className="mt-1 w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+          className="mt-1 w-4 h-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
           required
         />
         <label htmlFor="terms" className="text-sm text-slate-700">
           I agree to the{' '}
-          <a href="#" className="text-indigo-600 hover:text-indigo-700 font-medium">
+          <a href="#" className="text-violet-700 hover:text-violet-800 font-medium">
             Terms of Service
           </a>{' '}
           and{' '}
-          <a href="#" className="text-indigo-600 hover:text-indigo-700 font-medium">
+          <a href="#" className="text-violet-700 hover:text-violet-800 font-medium">
             Privacy Policy
           </a>
         </label>
@@ -555,14 +540,14 @@ const RegisterPage = () => {
           variant="outline"
           onClick={() => setStep(2)}
           disabled={loading}
-          className="flex-1"
+          className="flex-1 border-violet-300 text-violet-700 hover:bg-violet-50 focus:ring-violet-500"
         >
           Back
         </Button>
         <Button
           type="submit"
           disabled={loading}
-          className="flex-1"
+          className="flex-1 bg-violet-600 hover:bg-violet-700 focus:ring-violet-500"
         >
           {loading ? (
             <>
@@ -577,74 +562,61 @@ const RegisterPage = () => {
           )}
         </Button>
       </div>
+
+      <div className="text-sm text-slate-600">
+        Already have an account?{' '}
+        <Link to="/login" className="font-medium text-violet-700 hover:text-violet-800 hover:underline">
+          Sign in
+        </Link>
+      </div>
     </form>
   );
 
+  const steps = [
+    { key: 1, label: 'Role' },
+    { key: 2, label: 'Account' },
+    { key: 3, label: 'Profile' },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
-      <div className="w-full max-w-2xl">
-        {/* Logo and Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-700 text-white font-bold text-2xl mb-4 shadow-lg">
-            C
-          </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            Join CareSync
-          </h1>
-          <p className="text-slate-600">
-            Create your account in just a few steps
-          </p>
-        </div>
-
-        {/* Progress Indicator */}
-        {step > 1 && (
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-slate-700">
-                Step {step} of 3
-              </span>
-              <span className="text-sm text-slate-600">
-                {Math.round((step / 3) * 100)}% Complete
-              </span>
-            </div>
-            <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+    <Card className="p-6 sm:p-7 rounded-2xl border border-slate-200/80 shadow-sm">
+      {/* Stepper */}
+      <div className="mb-6 flex items-center gap-2">
+        {steps.map((s, idx) => {
+          const isActive = step === s.key;
+          const isDone = step > s.key;
+          return (
+            <React.Fragment key={s.key}>
               <div
-                className="h-full bg-indigo-600 transition-all duration-300"
-                style={{ width: `${(step / 3) * 100}%` }}
-              ></div>
-            </div>
-          </div>
-        )}
-
-        {/* Registration Card */}
-        <Card className="p-8">
-          {step === 1 && renderStep1()}
-          {step === 2 && renderStep2()}
-          {step === 3 && renderStep3()}
-        </Card>
-
-        {/* Login Link */}
-        <p className="text-center text-sm text-slate-600 mt-6">
-          Already have an account?{' '}
-          <Link
-            to="/login"
-            className="text-indigo-600 hover:text-indigo-700 font-medium"
-          >
-            Sign in
-          </Link>
-        </p>
-
-        {/* Back to Home */}
-        <div className="text-center mt-4">
-          <Link
-            to="/"
-            className="text-sm text-slate-500 hover:text-slate-700"
-          >
-            ← Back to Home
-          </Link>
-        </div>
+                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
+                  isActive
+                    ? 'bg-violet-600 text-white'
+                    : isDone
+                      ? 'bg-slate-900 text-white'
+                      : 'bg-slate-100 text-slate-600'
+                }`}
+              >
+                <span
+                  className={`inline-flex h-5 w-5 items-center justify-center rounded-full ${
+                    isActive || isDone ? 'bg-white/20 text-white' : 'bg-white text-slate-700'
+                  }`}
+                >
+                  {s.key}
+                </span>
+                {s.label}
+              </div>
+              {idx !== steps.length - 1 && (
+                <div className="h-px flex-1 bg-slate-200" />
+              )}
+            </React.Fragment>
+          );
+        })}
       </div>
-    </div>
+
+      {step === 1 && renderStep1()}
+      {step === 2 && renderStep2()}
+      {step === 3 && renderStep3()}
+    </Card>
   );
 };
 

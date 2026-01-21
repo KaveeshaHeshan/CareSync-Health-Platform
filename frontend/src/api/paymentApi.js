@@ -60,6 +60,14 @@ const paymentApi = {
   },
 
   // ========== Payment History ==========
+
+  // Get payment history (backend: GET /api/payments/history)
+  getHistory: async (filters = {}) => {
+    const response = await axiosInstance.get('/payments/history', {
+      params: filters,
+    });
+    return response.data;
+  },
   
   // Get all payments
   getAll: async (filters = {}) => {
@@ -70,6 +78,12 @@ const paymentApi = {
 
   // Get payment by ID
   getById: async (paymentId) => {
+    const response = await axiosInstance.get(`/payments/${paymentId}`);
+    return response.data;
+  },
+
+  // Backwards-compatible alias used by InvoicePage
+  getPaymentById: async (paymentId) => {
     const response = await axiosInstance.get(`/payments/${paymentId}`);
     return response.data;
   },

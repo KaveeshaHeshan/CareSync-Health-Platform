@@ -4,28 +4,15 @@ import {
   CreditCard,
   DollarSign,
   Download,
-  Calendar,
   Clock,
   Search,
-  Filter,
   CheckCircle,
   XCircle,
   AlertCircle,
   Eye,
-  Plus,
-  Trash2,
   FileText,
-  TrendingUp,
-  TrendingDown,
-  Wallet,
   Receipt,
-  Building2,
   User,
-  Phone,
-  Mail,
-  MapPin,
-  Info,
-  ChevronRight,
   BarChart3
 } from 'lucide-react';
 import { formatDate } from '../../utils/formatters';
@@ -35,6 +22,7 @@ import Input from '../../components/ui/Input';
 import Badge from '../../components/ui/Badge';
 import Spinner from '../../components/ui/Spinner';
 import Modal from '../../components/ui/Modal';
+import axiosInstance from '../../api/axiosInstance';
 
 const Billing = () => {
   const navigate = useNavigate();
@@ -42,155 +30,52 @@ const Billing = () => {
   // State management
   const [transactions, setTransactions] = useState([]);
   const [filteredTransactions, setFilteredTransactions] = useState([]);
-  const [paymentMethods, setPaymentMethods] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all'); // all, paid, pending, failed
+  const [statusFilter, setStatusFilter] = useState('all'); // all, completed, pending, failed, refunded
   const [dateFilter, setDateFilter] = useState('all'); // all, last30, last90, lastyear
   
   // Modal states
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showAddCardModal, setShowAddCardModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
-  
-  // Payment form
-  const [paymentForm, setPaymentForm] = useState({
-    transactionId: '',
-    amount: 0,
-    paymentMethodId: ''
-  });
-  const [processingPayment, setProcessingPayment] = useState(false);
 
-  // Add card form
-  const [cardForm, setCardForm] = useState({
-    cardNumber: '',
-    cardHolder: '',
-    expiryMonth: '',
-    expiryYear: '',
-    cvv: '',
-    billingAddress: ''
-  });
-  const [addingCard, setAddingCard] = useState(false);
+  const normalizePaymentStatus = (status) => {
+    if (!status) return 'pending';
+    const s = String(status).toLowerCase();
+    if (s === 'succeeded') return 'completed';
+    return s;
+  };
 
-  // Mock data - Replace with API call
-  const mockTransactions = [
-    {
-      id: '1',
-      invoiceNumber: 'INV-2024-001',
-      type: 'consultation',
-      description: 'Video Consultation - Dr. Sarah Johnson',
-      date: new Date('2024-01-15'),
-      amount: 150.00,
-      status: 'paid',
-      paymentMethod: 'Visa ending in 4242',
-      doctor: 'Dr. Sarah Johnson',
-      appointmentDate: new Date('2024-01-15'),
-      receiptUrl: '/receipts/inv-2024-001.pdf'
-    },
-    {
-      id: '2',
-      invoiceNumber: 'INV-2024-002',
-      type: 'lab',
-      description: 'Complete Blood Count (CBC)',
-      date: new Date('2024-01-10'),
-      amount: 85.00,
-      status: 'paid',
-      paymentMethod: 'Mastercard ending in 8888',
-      doctor: 'Dr. Michael Chen',
-      appointmentDate: new Date('2024-01-10'),
-      receiptUrl: '/receipts/inv-2024-002.pdf'
-    },
-    {
-      id: '3',
-      invoiceNumber: 'INV-2024-003',
-      type: 'consultation',
-      description: 'In-person Consultation - Dr. Emily Davis',
-      date: new Date('2024-01-08'),
-      amount: 120.00,
-      status: 'pending',
-      paymentMethod: null,
-      doctor: 'Dr. Emily Davis',
-      appointmentDate: new Date('2024-01-08'),
-      receiptUrl: null,
-      dueDate: new Date('2024-01-22')
-    },
-    {
-      id: '4',
-      invoiceNumber: 'INV-2024-004',
-      type: 'lab',
-      description: 'Lipid Panel Test',
-      date: new Date('2024-01-08'),
-      amount: 95.00,
-      status: 'pending',
-      paymentMethod: null,
-      doctor: 'Dr. Michael Chen',
-      appointmentDate: new Date('2024-01-08'),
-      receiptUrl: null,
-      dueDate: new Date('2024-01-22')
-    },
-    {
-      id: '5',
-      invoiceNumber: 'INV-2024-005',
-      type: 'prescription',
-      description: 'Medication - Metformin 500mg',
-      date: new Date('2024-01-05'),
-      amount: 45.00,
-      status: 'paid',
-      paymentMethod: 'Visa ending in 4242',
-      doctor: 'Dr. Michael Chen',
-      appointmentDate: new Date('2024-01-05'),
-      receiptUrl: '/receipts/inv-2024-005.pdf'
-    },
-    {
-      id: '6',
-      invoiceNumber: 'INV-2023-089',
-      type: 'consultation',
-      description: 'Follow-up Consultation - Dr. Sarah Johnson',
-      date: new Date('2023-12-20'),
-      amount: 100.00,
-      status: 'paid',
-      paymentMethod: 'Mastercard ending in 8888',
-      doctor: 'Dr. Sarah Johnson',
-      appointmentDate: new Date('2023-12-20'),
-      receiptUrl: '/receipts/inv-2023-089.pdf'
-    },
-    {
-      id: '7',
-      invoiceNumber: 'INV-2023-088',
-      type: 'lab',
-      description: 'Thyroid Function Test',
-      date: new Date('2023-12-15'),
-      amount: 110.00,
-      status: 'failed',
-      paymentMethod: 'Visa ending in 4242',
-      doctor: 'Dr. Emily Davis',
-      appointmentDate: new Date('2023-12-15'),
-      receiptUrl: null,
-      failureReason: 'Insufficient funds'
-    }
-  ];
+  const toBillingTransaction = (payment) => {
+    const id = payment?._id || payment?.id;
+    const invoiceNumber =
+      payment?.transactionId || (id ? String(id).slice(-8).toUpperCase() : 'N/A');
 
-  const mockPaymentMethods = [
-    {
-      id: '1',
-      type: 'visa',
-      last4: '4242',
-      cardHolder: 'John Doe',
-      expiryMonth: '12',
-      expiryYear: '2025',
-      isDefault: true
-    },
-    {
-      id: '2',
-      type: 'mastercard',
-      last4: '8888',
-      cardHolder: 'John Doe',
-      expiryMonth: '06',
-      expiryYear: '2026',
-      isDefault: false
-    }
-  ];
+    const doctorName = payment?.doctor?.name || 'Doctor';
+    const appointmentDate = payment?.appointment?.date
+      ? new Date(payment.appointment.date)
+      : payment?.createdAt
+        ? new Date(payment.createdAt)
+        : new Date();
+
+    const description =
+      payment?.description || `Appointment payment - ${doctorName}`;
+
+    return {
+      id,
+      invoiceNumber: `INV-${invoiceNumber}`,
+      type: 'consultation',
+      description,
+      date: payment?.createdAt ? new Date(payment.createdAt) : new Date(),
+      amount: Number(payment?.amount || 0),
+      status: normalizePaymentStatus(payment?.status),
+      paymentMethod: payment?.paymentMethod || null,
+      doctor: doctorName,
+      appointmentId: payment?.appointment?._id || payment?.appointment,
+      appointmentDate,
+      receiptUrl: payment?.receiptUrl || null,
+    };
+  };
 
   useEffect(() => {
     fetchBillingData();
@@ -203,10 +88,9 @@ const Billing = () => {
   const fetchBillingData = async () => {
     try {
       setLoading(true);
-      // Simulate API calls
-      await new Promise(resolve => setTimeout(resolve, 800));
-      setTransactions(mockTransactions);
-      setPaymentMethods(mockPaymentMethods);
+      const { data } = await axiosInstance.get('/patients/payments');
+      const payments = data?.payments || [];
+      setTransactions(payments.map(toBillingTransaction));
     } catch (error) {
       console.error('Error fetching billing data:', error);
     } finally {
@@ -261,7 +145,7 @@ const Billing = () => {
   const calculateSummary = () => {
     const total = transactions.reduce((sum, tx) => sum + tx.amount, 0);
     const paid = transactions
-      .filter(tx => tx.status === 'paid')
+      .filter(tx => tx.status === 'completed')
       .reduce((sum, tx) => sum + tx.amount, 0);
     const pending = transactions
       .filter(tx => tx.status === 'pending')
@@ -274,108 +158,12 @@ const Billing = () => {
   };
 
   const handlePayNow = (transaction) => {
-    setSelectedTransaction(transaction);
-    setPaymentForm({
-      transactionId: transaction.id,
-      amount: transaction.amount,
-      paymentMethodId: paymentMethods.find(pm => pm.isDefault)?.id || ''
-    });
-    setShowPaymentModal(true);
-  };
-
-  const handlePaymentSubmit = async () => {
-    if (!paymentForm.paymentMethodId) {
-      alert('Please select a payment method');
+    if (!transaction?.appointmentId) {
+      alert('This payment is not linked to an appointment.');
       return;
     }
-    
-    try {
-      setProcessingPayment(true);
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Update transaction status
-      setTransactions(prev => prev.map(tx => 
-        tx.id === selectedTransaction.id 
-          ? { ...tx, status: 'paid', paymentMethod: paymentMethods.find(pm => pm.id === paymentForm.paymentMethodId)?.type + ' ending in ' + paymentMethods.find(pm => pm.id === paymentForm.paymentMethodId)?.last4 }
-          : tx
-      ));
-      
-      setShowPaymentModal(false);
-      alert('Payment successful!');
-    } catch (error) {
-      console.error('Payment error:', error);
-      alert('Payment failed. Please try again.');
-    } finally {
-      setProcessingPayment(false);
-    }
-  };
 
-  const handleAddCard = async () => {
-    if (!cardForm.cardNumber || !cardForm.cardHolder || !cardForm.expiryMonth || !cardForm.expiryYear || !cardForm.cvv) {
-      alert('Please fill in all required fields');
-      return;
-    }
-    
-    try {
-      setAddingCard(true);
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const newCard = {
-        id: String(paymentMethods.length + 1),
-        type: cardForm.cardNumber.startsWith('4') ? 'visa' : 'mastercard',
-        last4: cardForm.cardNumber.slice(-4),
-        cardHolder: cardForm.cardHolder,
-        expiryMonth: cardForm.expiryMonth,
-        expiryYear: cardForm.expiryYear,
-        isDefault: paymentMethods.length === 0
-      };
-      
-      setPaymentMethods([...paymentMethods, newCard]);
-      setShowAddCardModal(false);
-      setCardForm({
-        cardNumber: '',
-        cardHolder: '',
-        expiryMonth: '',
-        expiryYear: '',
-        cvv: '',
-        billingAddress: ''
-      });
-      alert('Card added successfully!');
-    } catch (error) {
-      console.error('Add card error:', error);
-      alert('Failed to add card');
-    } finally {
-      setAddingCard(false);
-    }
-  };
-
-  const handleRemoveCard = async (cardId) => {
-    if (!confirm('Are you sure you want to remove this payment method?')) {
-      return;
-    }
-    
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setPaymentMethods(prev => prev.filter(pm => pm.id !== cardId));
-      alert('Payment method removed');
-    } catch (error) {
-      console.error('Remove card error:', error);
-      alert('Failed to remove payment method');
-    }
-  };
-
-  const handleSetDefaultCard = async (cardId) => {
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setPaymentMethods(prev => prev.map(pm => ({
-        ...pm,
-        isDefault: pm.id === cardId
-      })));
-      alert('Default payment method updated');
-    } catch (error) {
-      console.error('Set default error:', error);
-      alert('Failed to update default payment method');
-    }
+    navigate(`/patient/payment/${transaction.appointmentId}`);
   };
 
   const handleViewInvoice = (transaction) => {
@@ -384,19 +172,30 @@ const Billing = () => {
   };
 
   const handleDownloadInvoice = (transaction) => {
-    // Simulate PDF download
-    alert(`Downloading invoice ${transaction.invoiceNumber}...`);
-    console.log('Downloading:', transaction);
+    // Prefer receiptUrl if available, otherwise show printable invoice page
+    if (transaction?.receiptUrl) {
+      window.open(transaction.receiptUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    if (transaction?.id) {
+      navigate(`/patient/invoice/${transaction.id}`);
+      return;
+    }
+
+    alert('Invoice is not available for this payment.');
   };
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'paid':
+      case 'completed':
         return <Badge variant="success">Paid</Badge>;
       case 'pending':
         return <Badge variant="warning">Pending</Badge>;
       case 'failed':
         return <Badge variant="danger">Failed</Badge>;
+      case 'refunded':
+        return <Badge variant="default">Refunded</Badge>;
       default:
         return <Badge variant="default">{status}</Badge>;
     }
@@ -404,12 +203,14 @@ const Billing = () => {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'paid':
+      case 'completed':
         return <CheckCircle className="text-green-600" size={20} />;
       case 'pending':
         return <Clock className="text-orange-600" size={20} />;
       case 'failed':
         return <XCircle className="text-red-600" size={20} />;
+      case 'refunded':
+        return <AlertCircle className="text-slate-600" size={20} />;
       default:
         return <AlertCircle className="text-slate-600" size={20} />;
     }
@@ -425,25 +226,6 @@ const Billing = () => {
         return <Receipt className="text-green-600" size={20} />;
       default:
         return <DollarSign className="text-slate-600" size={20} />;
-    }
-  };
-
-  const getCardIcon = (type) => {
-    switch (type) {
-      case 'visa':
-        return (
-          <div className="w-12 h-8 bg-blue-600 rounded flex items-center justify-center text-white text-xs font-bold">
-            VISA
-          </div>
-        );
-      case 'mastercard':
-        return (
-          <div className="w-12 h-8 bg-red-600 rounded flex items-center justify-center text-white text-xs font-bold">
-            MC
-          </div>
-        );
-      default:
-        return <CreditCard className="text-slate-600" size={32} />;
     }
   };
 
@@ -534,76 +316,6 @@ const Billing = () => {
           </Card>
         </div>
 
-        {/* Payment Methods */}
-        <Card className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-slate-900">Payment Methods</h2>
-            <Button onClick={() => setShowAddCardModal(true)} size="sm">
-              <Plus className="mr-1" size={16} />
-              Add Card
-            </Button>
-          </div>
-
-          {paymentMethods.length === 0 ? (
-            <div className="text-center py-12">
-              <CreditCard className="mx-auto text-slate-400 mb-4" size={48} />
-              <p className="text-slate-600 mb-4">No payment methods added</p>
-              <Button onClick={() => setShowAddCardModal(true)}>
-                <Plus className="mr-2" size={20} />
-                Add Your First Card
-              </Button>
-            </div>
-          ) : (
-            <div className="grid md:grid-cols-2 gap-4">
-              {paymentMethods.map((method) => (
-                <div
-                  key={method.id}
-                  className={`p-4 rounded-xl border-2 ${
-                    method.isDefault ? 'border-indigo-600 bg-indigo-50' : 'border-slate-200 bg-white'
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    {getCardIcon(method.type)}
-                    {method.isDefault && (
-                      <Badge variant="primary">Default</Badge>
-                    )}
-                  </div>
-                  
-                  <p className="font-semibold text-slate-900 mb-1">
-                    •••• •••• •••• {method.last4}
-                  </p>
-                  <p className="text-sm text-slate-600 mb-1">{method.cardHolder}</p>
-                  <p className="text-sm text-slate-500 mb-3">
-                    Expires {method.expiryMonth}/{method.expiryYear}
-                  </p>
-                  
-                  <div className="flex gap-2">
-                    {!method.isDefault && (
-                      <Button
-                        onClick={() => handleSetDefaultCard(method.id)}
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                      >
-                        Set Default
-                      </Button>
-                    )}
-                    <Button
-                      onClick={() => handleRemoveCard(method.id)}
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                    >
-                      <Trash2 size={14} className="mr-1" />
-                      Remove
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-
         {/* Filters */}
         <Card className="mb-6">
           <div className="flex flex-col lg:flex-row gap-4">
@@ -628,9 +340,10 @@ const Billing = () => {
               className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             >
               <option value="all">All Status</option>
-              <option value="paid">Paid</option>
+              <option value="completed">Paid</option>
               <option value="pending">Pending</option>
               <option value="failed">Failed</option>
+              <option value="refunded">Refunded</option>
             </select>
 
             {/* Date Filter */}
@@ -722,7 +435,7 @@ const Billing = () => {
                           >
                             <Eye size={14} />
                           </Button>
-                          {transaction.status === 'paid' && (
+                          {transaction.status === 'completed' && (
                             <Button
                               onClick={() => handleDownloadInvoice(transaction)}
                               variant="outline"
@@ -748,6 +461,15 @@ const Billing = () => {
                               Retry
                             </Button>
                           )}
+                          {transaction.status === 'refunded' && (
+                            <Button
+                              onClick={() => handleViewInvoice(transaction)}
+                              variant="outline"
+                              size="sm"
+                            >
+                              Details
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -758,211 +480,6 @@ const Billing = () => {
           )}
         </Card>
       </div>
-
-      {/* Payment Modal */}
-      <Modal
-        isOpen={showPaymentModal}
-        onClose={() => !processingPayment && setShowPaymentModal(false)}
-        title="Make Payment"
-      >
-        {selectedTransaction && (
-          <div className="space-y-4">
-            <div className="bg-slate-50 rounded-lg p-4">
-              <p className="text-sm text-slate-600 mb-1">Invoice Number:</p>
-              <p className="font-semibold text-slate-900 mb-3">{selectedTransaction.invoiceNumber}</p>
-              
-              <p className="text-sm text-slate-600 mb-1">Description:</p>
-              <p className="text-slate-900 mb-3">{selectedTransaction.description}</p>
-              
-              <p className="text-sm text-slate-600 mb-1">Amount to Pay:</p>
-              <p className="text-2xl font-bold text-indigo-600">
-                ${selectedTransaction.amount.toFixed(2)}
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Payment Method <span className="text-red-600">*</span>
-              </label>
-              <select
-                value={paymentForm.paymentMethodId}
-                onChange={(e) => setPaymentForm({ ...paymentForm, paymentMethodId: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              >
-                <option value="">Select payment method...</option>
-                {paymentMethods.map((method) => (
-                  <option key={method.id} value={method.id}>
-                    {method.type.toUpperCase()} ending in {method.last4}
-                    {method.isDefault ? ' (Default)' : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex gap-3">
-                <Info className="text-blue-600 flex-shrink-0" size={20} />
-                <div className="text-sm text-blue-800">
-                  <p className="font-medium mb-1">Secure Payment</p>
-                  <p>Your payment information is encrypted and secure. You will receive a receipt via email.</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-3 pt-4">
-              <Button
-                onClick={() => setShowPaymentModal(false)}
-                variant="outline"
-                disabled={processingPayment}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handlePaymentSubmit}
-                disabled={processingPayment}
-                className="flex-1"
-              >
-                {processingPayment ? (
-                  <>
-                    <Spinner size="sm" className="mr-2" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="mr-2" size={20} />
-                    Pay ${selectedTransaction.amount.toFixed(2)}
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
-
-      {/* Add Card Modal */}
-      <Modal
-        isOpen={showAddCardModal}
-        onClose={() => !addingCard && setShowAddCardModal(false)}
-        title="Add Payment Method"
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Card Number <span className="text-red-600">*</span>
-            </label>
-            <Input
-              type="text"
-              placeholder="1234 5678 9012 3456"
-              value={cardForm.cardNumber}
-              onChange={(e) => setCardForm({ ...cardForm, cardNumber: e.target.value.replace(/\s/g, '') })}
-              maxLength={16}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Cardholder Name <span className="text-red-600">*</span>
-            </label>
-            <Input
-              type="text"
-              placeholder="John Doe"
-              value={cardForm.cardHolder}
-              onChange={(e) => setCardForm({ ...cardForm, cardHolder: e.target.value })}
-            />
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Month <span className="text-red-600">*</span>
-              </label>
-              <select
-                value={cardForm.expiryMonth}
-                onChange={(e) => setCardForm({ ...cardForm, expiryMonth: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              >
-                <option value="">MM</option>
-                {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
-                  <option key={month} value={String(month).padStart(2, '0')}>
-                    {String(month).padStart(2, '0')}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Year <span className="text-red-600">*</span>
-              </label>
-              <select
-                value={cardForm.expiryYear}
-                onChange={(e) => setCardForm({ ...cardForm, expiryYear: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              >
-                <option value="">YYYY</option>
-                {Array.from({ length: 10 }, (_, i) => 2024 + i).map(year => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                CVV <span className="text-red-600">*</span>
-              </label>
-              <Input
-                type="text"
-                placeholder="123"
-                value={cardForm.cvv}
-                onChange={(e) => setCardForm({ ...cardForm, cvv: e.target.value })}
-                maxLength={4}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Billing Address (Optional)
-            </label>
-            <textarea
-              value={cardForm.billingAddress}
-              onChange={(e) => setCardForm({ ...cardForm, billingAddress: e.target.value })}
-              rows={3}
-              placeholder="Enter your billing address..."
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            />
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <Button
-              onClick={() => setShowAddCardModal(false)}
-              variant="outline"
-              disabled={addingCard}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleAddCard}
-              disabled={addingCard}
-              className="flex-1"
-            >
-              {addingCard ? (
-                <>
-                  <Spinner size="sm" className="mr-2" />
-                  Adding...
-                </>
-              ) : (
-                <>
-                  <Plus className="mr-2" size={20} />
-                  Add Card
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-      </Modal>
 
       {/* Invoice Detail Modal */}
       <Modal

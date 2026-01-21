@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
   Download,
@@ -19,11 +19,11 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
 import Alert from '../../components/ui/Alert';
-import appointmentApi from '../../api/appointmentApi';
 import paymentApi from '../../api/paymentApi';
 
 const InvoicePage = () => {
   const navigate = useNavigate();
+  const { invoiceId } = useParams();
   const [searchParams] = useSearchParams();
   const invoiceRef = useRef();
 
@@ -39,7 +39,8 @@ const InvoicePage = () => {
   const loadInvoice = async () => {
     try {
       setLoading(true);
-      const paymentId = searchParams.get('paymentId');
+      // Route is /patient/invoice/:invoiceId. Treat invoiceId as paymentId.
+      const paymentId = invoiceId || searchParams.get('paymentId');
       const appointmentId = searchParams.get('appointmentId');
 
       if (!paymentId && !appointmentId) {
@@ -55,19 +56,11 @@ const InvoicePage = () => {
         paymentData = response.payment;
       } else {
         // If only appointmentId, fetch the latest payment for that appointment
-        const response = await paymentApi.getPaymentByAppointment(appointmentId);
-        paymentData = response.payment;
+        throw new Error('Payment ID is required to load an invoice');
       }
 
-      // Fetch appointment details
-      const appointmentResponse = await appointmentApi.getAppointmentById(
-        paymentData.appointmentId || appointmentId
-      );
-
-      setInvoice({
-        ...paymentData,
-        appointment: appointmentResponse.appointment
-      });
+      // Backend /api/payments/:id already populates appointment/doctor/patient.
+      setInvoice(paymentData);
 
       setLoading(false);
     } catch (err) {

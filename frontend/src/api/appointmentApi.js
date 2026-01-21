@@ -99,6 +99,24 @@ const appointmentApi = {
     const response = await axiosInstance.patch(`/appointments/${appointmentId}/reschedule`, newDateTime);
     return response.data;
   },
+
+  // Get patient's appointments (alias for getByPatient)
+  getPatientAppointments: async (patientId) => {
+    const response = await axiosInstance.get(`/appointments/patient/${patientId}`);
+    return response.data;
+  },
+
+  // Get doctor's appointments (alias for getByDoctor)
+  getDoctorAppointments: async (doctorId) => {
+    const response = await axiosInstance.get(`/appointments/doctor/${doctorId}`);
+    return response.data;
+  },
+
+  // Get appointment statistics
+  getStats: async () => {
+    const response = await axiosInstance.get('/appointments/stats');
+    return response.data;
+  },
 };
 
 export default appointmentApi;

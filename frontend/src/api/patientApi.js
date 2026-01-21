@@ -223,6 +223,14 @@ const patientApi = {
   },
 
   // ========== Billing ==========
+
+  // Get patient's payment history
+  getPayments: async (filters = {}) => {
+    const response = await axiosInstance.get('/patients/payments', {
+      params: filters,
+    });
+    return response.data;
+  },
   
   // Get billing history
   getBillingHistory: async (patientId) => {

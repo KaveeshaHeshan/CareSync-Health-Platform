@@ -682,3 +682,110 @@ exports.getConsultations = async (req, res) => {
     });
   }
 };
+
+// Aliases for route compatibility
+exports.getAppointments = async (req, res) => {
+  try {
+    const appointments = await Appointment.find({ doctor: req.user.id })
+      .populate('patient', 'name email phone age gender')
+      .sort({ date: -1 });
+
+    res.json({
+      success: true,
+      count: appointments.length,
+      appointments
+    });
+  } catch (error) {
+    console.error('Get appointments error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+exports.getPatient = exports.getPatientDetails;
+exports.addPrescription = exports.createPrescription;
+exports.getAvailability = async (req, res) => {
+  try {
+    const doctor = await User.findById(req.user.id).select('availability schedule');
+    
+    res.json({
+      success: true,
+      availability: doctor.availability || [],
+      schedule: doctor.schedule || {}
+    });
+  } catch (error) {
+    console.error('Get availability error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+exports.updateAvailability = async (req, res) => {
+  try {
+    const { availability } = req.body;
+
+    const doctor = await User.findByIdAndUpdate(
+      req.user.id,
+      { $set: { availability } },
+      { new: true, runValidators: true }
+    ).select('availability');
+
+    res.json({
+      success: true,
+      message: 'Availability updated successfully',
+      availability: doctor.availability
+    });
+  } catch (error) {
+    console.error('Update availability error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+exports.updateSlots = async (req, res) => {
+  try {
+    const { slots } = req.body;
+
+    const doctor = await User.findByIdAndUpdate(
+      req.user.id,
+      { $set: { slots } },
+      { new: true, runValidators: true }
+    ).select('slots');
+
+    res.json({
+      success: true,
+      message: 'Slots updated successfully',
+      slots: doctor.slots
+    });
+  } catch (error) {
+    console.error('Update slots error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+exports.getReviews = async (req, res) => {
+  try {
+    // For now, return an empty array since we don't have a Review model
+    // You can implement this later
+    res.json({
+      success: true,
+      count: 0,
+      reviews: []
+    });
+  } catch (error) {
+    console.error('Get reviews error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};

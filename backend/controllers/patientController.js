@@ -567,3 +567,178 @@ exports.getStats = async (req, res) => {
     });
   }
 };
+
+// @desc    Get patient appointments (alias)
+// @route   GET /api/patients/appointments
+// @access  Private (Patient)
+exports.getAppointments = async (req, res) => {
+  try {
+    const appointments = await Appointment.find({ patient: req.user.id })
+      .populate('doctor', 'name specialization fees rating')
+      .sort({ date: -1 });
+
+    res.json({
+      success: true,
+      count: appointments.length,
+      appointments
+    });
+  } catch (error) {
+    console.error('Get appointments error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get/Update health profile
+// @route   GET/PUT /api/patients/health-profile
+// @access  Private (Patient)
+exports.getHealthProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('healthProfile');
+    
+    res.json({
+      success: true,
+      healthProfile: user.healthProfile || {}
+    });
+  } catch (error) {
+    console.error('Get health profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+exports.updateHealthProfile = async (req, res) => {
+  try {
+    const { bloodType, allergies, chronicConditions, currentMedications, emergencyContact } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        $set: {
+          'healthProfile.bloodType': bloodType,
+          'healthProfile.allergies': allergies,
+          'healthProfile.chronicConditions': chronicConditions,
+          'healthProfile.currentMedications': currentMedications,
+          'healthProfile.emergencyContact': emergencyContact
+        }
+      },
+      { new: true, runValidators: true }
+    ).select('healthProfile');
+
+    res.json({
+      success: true,
+      message: 'Health profile updated successfully',
+      healthProfile: user.healthProfile
+    });
+  } catch (error) {
+    console.error('Update health profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Medical history management
+// @route   GET/POST/PUT/DELETE /api/patients/medical-history
+// @access  Private (Patient)
+exports.getMedicalHistory = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('medicalHistory');
+    
+    res.json({
+      success: true,
+      medicalHistory: user.medicalHistory || []
+    });
+  } catch (error) {
+    console.error('Get medical history error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+exports.addMedicalHistory = async (req, res) => {
+  try {
+    const historyItem = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $push: { medicalHistory: historyItem } },
+      { new: true, runValidators: true }
+    ).select('medicalHistory');
+
+    res.json({
+      success: true,
+      message: 'Medical history added successfully',
+      medicalHistory: user.medicalHistory
+    });
+  } catch (error) {
+    console.error('Add medical history error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+exports.updateMedicalHistory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    const user = await User.findOneAndUpdate(
+      { _id: req.user.id, 'medicalHistory._id': id },
+      { $set: { 'medicalHistory.$': updateData } },
+      { new: true, runValidators: true }
+    ).select('medicalHistory');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Medical history item not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Medical history updated successfully',
+      medicalHistory: user.medicalHistory
+    });
+  } catch (error) {
+    console.error('Update medical history error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+exports.deleteMedicalHistory = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $pull: { medicalHistory: { _id: id } } },
+      { new: true }
+    ).select('medicalHistory');
+
+    res.json({
+      success: true,
+      message: 'Medical history deleted successfully',
+      medicalHistory: user.medicalHistory
+    });
+  } catch (error) {
+    console.error('Delete medical history error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};

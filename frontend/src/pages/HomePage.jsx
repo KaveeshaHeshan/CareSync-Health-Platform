@@ -235,18 +235,10 @@ const HomePage = () => {
               <div className="relative bg-gradient-to-br from-white to-slate-50 rounded-[3rem] p-8 shadow-2xl border border-slate-200/50 backdrop-blur-xl overflow-hidden group hover:shadow-indigo-200/50 transition-all duration-500">
                 {/* Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                
-                {/* Banner Image */}
-                <div className="relative rounded-3xl overflow-hidden shadow-2xl mb-6">
-                  <img 
-                    src={bannerImage} 
-                    alt="Healthcare Banner" 
-                    className="w-full h-64 object-cover transform group-hover:scale-105 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent"></div>
-                  
-                  {/* Verified Badge Overlay */}
-                  <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-sm rounded-2xl px-4 py-3 shadow-lg flex items-center gap-3">
+
+                {/* Verified Badge (kept inside card, not covering image) */}
+                <div className="relative mb-4 flex justify-end">
+                  <div className="bg-white/95 backdrop-blur-sm rounded-2xl px-4 py-3 shadow-lg flex items-center gap-3">
                     <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
                       <CheckCircle className="w-7 h-7 text-green-600" />
                     </div>
@@ -255,6 +247,15 @@ const HomePage = () => {
                       <div className="text-xs text-slate-600">100% Certified</div>
                     </div>
                   </div>
+                </div>
+                
+                {/* Banner Image */}
+                <div className="relative rounded-3xl overflow-hidden shadow-2xl mb-6">
+                  <img 
+                    src={bannerImage} 
+                    alt="Healthcare Banner" 
+                    className="w-full h-64 object-contain bg-slate-100 transform group-hover:scale-[1.02] transition-transform duration-700"
+                  />
                 </div>
 
                 {/* Feature Card */}

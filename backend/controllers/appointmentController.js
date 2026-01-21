@@ -556,3 +556,72 @@ exports.getAppointmentStats = async (req, res) => {
     });
   }
 };
+
+// Alias for getAppointmentStats
+exports.getStats = exports.getAppointmentStats;
+
+// @desc    Get patient's appointments
+// @route   GET /api/appointments/patient/:patientId
+// @access  Private (Patient/Admin)
+exports.getPatientAppointments = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+
+    // Check if user is authorized to view these appointments
+    if (req.user.role === 'PATIENT' && req.user.id !== patientId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to view these appointments'
+      });
+    }
+
+    const appointments = await Appointment.find({ patient: patientId })
+      .populate('doctor', 'name specialization fees rating')
+      .sort({ date: -1 });
+
+    res.json({
+      success: true,
+      count: appointments.length,
+      appointments
+    });
+  } catch (error) {
+    console.error('Get patient appointments error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get doctor's appointments
+// @route   GET /api/appointments/doctor/:doctorId
+// @access  Private (Doctor/Admin)
+exports.getDoctorAppointments = async (req, res) => {
+  try {
+    const { doctorId } = req.params;
+
+    // Check if user is authorized to view these appointments
+    if (req.user.role === 'DOCTOR' && req.user.id !== doctorId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to view these appointments'
+      });
+    }
+
+    const appointments = await Appointment.find({ doctor: doctorId })
+      .populate('patient', 'name email phone age gender')
+      .sort({ date: -1 });
+
+    res.json({
+      success: true,
+      count: appointments.length,
+      appointments
+    });
+  } catch (error) {
+    console.error('Get doctor appointments error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};

@@ -1,0 +1,172 @@
+[
+  {
+    "patientEmail": "john.smith@example.com",
+    "doctorEmail": "sarah.johnson@caresync.com",
+    "date": "2026-01-11T10:00:00.000Z",
+    "time": "10:00 AM",
+    "type": "in-person",
+    "status": "completed",
+    "reason": "Regular cardiac checkup",
+    "notes": "Patient is healthy, all vitals normal. ECG shows regular rhythm.",
+    "isPaid": true,
+    "amount": 150
+  },
+  {
+    "patientEmail": "emma.davis@example.com",
+    "doctorEmail": "michael.chen@caresync.com",
+    "date": "2026-01-13T14:00:00.000Z",
+    "time": "2:00 PM",
+    "type": "online",
+    "status": "completed",
+    "reason": "Child vaccination consultation",
+    "notes": "Discussed vaccination schedule. Parent educated on side effects.",
+    "isPaid": true,
+    "amount": 120
+  },
+  {
+    "patientEmail": "david.martinez@example.com",
+    "doctorEmail": "emily.rodriguez@caresync.com",
+    "date": "2026-01-15T09:00:00.000Z",
+    "time": "9:00 AM",
+    "type": "in-person",
+    "status": "completed",
+    "reason": "Acne treatment follow-up",
+    "notes": "Skin condition improving. Continue current medication.",
+    "isPaid": true,
+    "amount": 130
+  },
+  {
+    "patientEmail": "lisa.anderson@example.com",
+    "doctorEmail": "james.wilson@caresync.com",
+    "date": "2026-01-20T11:00:00.000Z",
+    "time": "11:00 AM",
+    "type": "in-person",
+    "status": "confirmed",
+    "reason": "Knee pain examination",
+    "isPaid": true,
+    "amount": 200
+  },
+  {
+    "patientEmail": "tom.wilson@example.com",
+    "doctorEmail": "priya.patel@caresync.com",
+    "date": "2026-01-21T15:00:00.000Z",
+    "time": "3:00 PM",
+    "type": "online",
+    "status": "confirmed",
+    "reason": "Diabetes management consultation",
+    "isPaid": true,
+    "amount": 100
+  },
+  {
+    "patientEmail": "sarah.miller@example.com",
+    "doctorEmail": "lisa.chang@caresync.com",
+    "date": "2026-01-22T10:00:00.000Z",
+    "time": "10:00 AM",
+    "type": "online",
+    "status": "confirmed",
+    "reason": "Anxiety and stress management",
+    "isPaid": true,
+    "amount": 140
+  },
+  {
+    "patientEmail": "robert.taylor@example.com",
+    "doctorEmail": "ahmed.hassan@caresync.com",
+    "date": "2026-01-23T14:00:00.000Z",
+    "time": "2:00 PM",
+    "type": "in-person",
+    "status": "confirmed",
+    "reason": "Chronic sinusitis treatment",
+    "isPaid": true,
+    "amount": 160
+  },
+  {
+    "patientEmail": "jennifer.white@example.com",
+    "doctorEmail": "maria.garcia@caresync.com",
+    "date": "2026-01-24T09:00:00.000Z",
+    "time": "9:00 AM",
+    "type": "in-person",
+    "status": "confirmed",
+    "reason": "Annual gynecological checkup",
+    "isPaid": true,
+    "amount": 145
+  },
+  {
+    "patientEmail": "michael.brown@example.com",
+    "doctorEmail": "sarah.johnson@caresync.com",
+    "date": "2026-01-25T11:00:00.000Z",
+    "time": "11:00 AM",
+    "type": "in-person",
+    "status": "confirmed",
+    "reason": "High blood pressure follow-up",
+    "isPaid": true,
+    "amount": 150
+  },
+  {
+    "patientEmail": "jessica.lee@example.com",
+    "doctorEmail": "priya.patel@caresync.com",
+    "date": "2026-01-26T16:00:00.000Z",
+    "time": "4:00 PM",
+    "type": "online",
+    "status": "confirmed",
+    "reason": "Cold and flu symptoms",
+    "isPaid": true,
+    "amount": 100
+  },
+  {
+    "patientEmail": "john.smith@example.com",
+    "doctorEmail": "michael.chen@caresync.com",
+    "date": "2026-01-28T10:00:00.000Z",
+    "time": "10:00 AM",
+    "type": "online",
+    "status": "pending",
+    "reason": "General health consultation",
+    "isPaid": false,
+    "amount": 120
+  },
+  {
+    "patientEmail": "emma.davis@example.com",
+    "doctorEmail": "emily.rodriguez@caresync.com",
+    "date": "2026-01-29T13:00:00.000Z",
+    "time": "1:00 PM",
+    "type": "in-person",
+    "status": "pending",
+    "reason": "Skin allergy consultation",
+    "isPaid": false,
+    "amount": 130
+  },
+  {
+    "patientEmail": "david.martinez@example.com",
+    "doctorEmail": "james.wilson@caresync.com",
+    "date": "2026-01-30T15:00:00.000Z",
+    "time": "3:00 PM",
+    "type": "in-person",
+    "status": "pending",
+    "reason": "Sports injury assessment",
+    "isPaid": false,
+    "amount": 200
+  },
+  {
+    "patientEmail": "lisa.anderson@example.com",
+    "doctorEmail": "sarah.johnson@caresync.com",
+    "date": "2026-01-16T14:00:00.000Z",
+    "time": "2:00 PM",
+    "type": "in-person",
+    "status": "cancelled",
+    "reason": "Routine heart checkup",
+    "notes": "Cancelled by patient - rescheduling requested",
+    "isPaid": false,
+    "amount": 150
+  },
+  {
+    "patientEmail": "tom.wilson@example.com",
+    "doctorEmail": "michael.chen@caresync.com",
+    "date": "2026-01-17T11:00:00.000Z",
+    "time": "11:00 AM",
+    "type": "online",
+    "status": "cancelled",
+    "reason": "Follow-up consultation",
+    "notes": "Doctor unavailable - patient notified",
+    "isPaid": false,
+    "amount": 120
+  }
+]

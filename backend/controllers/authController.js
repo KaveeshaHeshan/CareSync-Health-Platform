@@ -77,9 +77,32 @@ exports.register = async (req, res) => {
     });
   } catch (error) {
     console.error('Register error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    
+    // Handle specific errors
+    if (error.code === 11000) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'User already exists with this email' 
+      });
+    }
+    
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ 
+        success: false,
+        message: messages.join(', ') 
+      });
+    }
+    
     res.status(500).json({ 
       success: false,
-      message: 'Server error during registration' 
+      message: 'Server error during registration',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
@@ -168,7 +191,7 @@ exports.login = async (req, res) => {
 };
 
 // @desc    Get current user profile
-// @route   GET /api/auth/me
+// @route   GET /api/auth/me or /api/auth/profile
 // @access  Private
 exports.getMe = async (req, res) => {
   try {
@@ -424,3 +447,6 @@ exports.resetPassword = async (req, res) => {
     });
   }
 };
+
+// Create alias for getMe to match route naming
+exports.getProfile = exports.getMe;

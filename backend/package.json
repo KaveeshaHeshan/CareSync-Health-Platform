@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon server.js",
-    "seed": "node seed.js"
+    "seed": "node seeds/seed.js"
   },
   "keywords": [],
   "author": "",
@@ -21,7 +21,12 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.1.2",
     "morgan": "^1.10.1",
-    "stripe": "^20.1.2"
+    "multer": "^2.0.2",
+    "nodemailer": "^7.0.12",
+    "socket.io": "^4.8.3",
+    "stripe": "^20.1.2",
+    "twilio": "^5.11.2",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"
