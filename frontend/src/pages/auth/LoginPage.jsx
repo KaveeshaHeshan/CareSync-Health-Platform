@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
-import Button from '../../components/ui/Button';
+import { Mail, Lock, AlertCircle, ShieldCheck, Sparkles } from 'lucide-react';
 import Input from '../../components/ui/Input';
 import Card from '../../components/ui/Card';
 import Spinner from '../../components/ui/Spinner';
@@ -25,7 +24,6 @@ const LoginPage = () => {
   });
   
   // UI state
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -100,178 +98,149 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md">
-        {/* Logo and Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-700 text-white font-bold text-2xl mb-4 shadow-lg">
-            C
+    <Card className="p-7 sm:p-8 rounded-2xl border border-slate-200/80 shadow-lg">
+      <div className="mb-6">
+        <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+          <ShieldCheck className="h-4 w-4" />
+          Secure sign-in
+        </div>
+        <h1 className="mt-3 text-2xl font-bold text-slate-900">Welcome back</h1>
+        <p className="mt-1 text-sm text-slate-600">Sign in to continue to CareSync.</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {error && (
+          <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-red-800">
+            <AlertCircle size={20} className="shrink-0" />
+            <p className="text-sm">{error}</p>
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            Welcome Back
-          </h1>
-          <p className="text-slate-600">
-            Sign in to your CareSync account
-          </p>
+        )}
+
+        <div>
+          <label htmlFor="email" className="mb-2 block text-sm font-medium text-slate-700">
+            Email Address
+          </label>
+          <Input
+            id="email"
+            type="email"
+            name="email"
+            placeholder="you@example.com"
+            value={formData.email}
+            onChange={handleChange}
+            icon={Mail}
+            className="focus:border-violet-500 focus:ring-violet-500"
+            disabled={loading}
+            autoComplete="email"
+            required
+          />
         </div>
 
-        {/* Login Card */}
-        <Card className="p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Error Alert */}
-            {error && (
-              <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-800">
-                <AlertCircle size={20} className="shrink-0" />
-                <p className="text-sm">{error}</p>
-              </div>
-            )}
+        <div>
+          <label htmlFor="password" className="mb-2 block text-sm font-medium text-slate-700">
+            Password
+          </label>
+          <Input
+            id="password"
+            type="password"
+            name="password"
+            placeholder="Enter your password"
+            value={formData.password}
+            onChange={handleChange}
+            icon={Lock}
+            className="focus:border-violet-500 focus:ring-violet-500"
+            disabled={loading}
+            autoComplete="current-password"
+            showPasswordToggle
+            required
+          />
+        </div>
 
-            {/* Email Input */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
-                Email Address
-              </label>
-              <Input
-                id="email"
-                type="email"
-                name="email"
-                placeholder="you@example.com"
-                value={formData.email}
-                onChange={handleChange}
-                leftIcon={<Mail size={18} />}
-                disabled={loading}
-                autoComplete="email"
-                required
-              />
-            </div>
-
-            {/* Password Input */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  leftIcon={<Lock size={18} />}
-                  disabled={loading}
-                  autoComplete="current-password"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                />
-                <span className="text-sm text-slate-700">Remember me</span>
-              </label>
-              <Link
-                to="/forgot-password"
-                className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
-              >
-                Forgot password?
-              </Link>
-            </div>
-
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              className="w-full"
-              size="lg"
+        <div className="flex items-center justify-between">
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              className="h-4 w-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
               disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Spinner size="sm" />
-                  Signing in...
-                </>
-              ) : (
-                'Sign In'
-              )}
-            </Button>
-          </form>
+            />
+            <span className="text-sm text-slate-700">Remember me</span>
+          </label>
 
-          {/* Divider */}
-          <div className="flex items-center gap-4 my-6">
-            <div className="flex-1 h-px bg-slate-200"></div>
-            <span className="text-sm text-slate-500">OR</span>
-            <div className="flex-1 h-px bg-slate-200"></div>
-          </div>
-
-          {/* Demo Credentials */}
-          <div className="space-y-3">
-            <p className="text-xs text-center text-slate-600 mb-3">
-              Try demo accounts:
-            </p>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => fillDemoCredentials('patient')}
-                className="px-3 py-2 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
-                disabled={loading}
-              >
-                Patient
-              </button>
-              <button
-                type="button"
-                onClick={() => fillDemoCredentials('doctor')}
-                className="px-3 py-2 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
-                disabled={loading}
-              >
-                Doctor
-              </button>
-              <button
-                type="button"
-                onClick={() => fillDemoCredentials('admin')}
-                className="px-3 py-2 text-xs font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors"
-                disabled={loading}
-              >
-                Admin
-              </button>
-            </div>
-          </div>
-        </Card>
-
-        {/* Register Link */}
-        <p className="text-center text-sm text-slate-600 mt-6">
-          Don't have an account?{' '}
           <Link
-            to="/register"
-            className="text-indigo-600 hover:text-indigo-700 font-medium"
+            to="/forgot-password"
+            className="text-sm font-medium text-violet-700 hover:text-violet-800 hover:underline"
           >
-            Sign up for free
+            Forgot password?
           </Link>
-        </p>
+        </div>
 
-        {/* Back to Home */}
-        <div className="text-center mt-4">
-          <Link
-            to="/"
-            className="text-sm text-slate-500 hover:text-slate-700"
+        <button
+          type="submit"
+          disabled={loading}
+          className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 disabled:opacity-60"
+        >
+          {loading ? (
+            <>
+              <Spinner size="sm" />
+              Signing in...
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-4 w-4" />
+              Sign in
+            </>
+          )}
+        </button>
+      </form>
+
+      <div className="my-6 flex items-center gap-4">
+        <div className="h-px flex-1 bg-slate-200" />
+        <span className="text-xs font-medium text-slate-500">DEMO</span>
+        <div className="h-px flex-1 bg-slate-200" />
+      </div>
+
+      <div className="space-y-3">
+        <p className="text-center text-xs text-slate-600">Try demo accounts:</p>
+        <div className="grid grid-cols-3 gap-2">
+          <button
+            type="button"
+            onClick={() => fillDemoCredentials('patient')}
+            className="rounded-lg bg-violet-50 px-3 py-2 text-xs font-semibold text-violet-800 hover:bg-violet-100 disabled:opacity-60"
+            disabled={loading}
           >
-            ← Back to Home
-          </Link>
+            Patient
+          </button>
+          <button
+            type="button"
+            onClick={() => fillDemoCredentials('doctor')}
+            className="rounded-lg bg-fuchsia-50 px-3 py-2 text-xs font-semibold text-fuchsia-800 hover:bg-fuchsia-100 disabled:opacity-60"
+            disabled={loading}
+          >
+            Doctor
+          </button>
+          <button
+            type="button"
+            onClick={() => fillDemoCredentials('admin')}
+            className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-800 hover:bg-slate-200 disabled:opacity-60"
+            disabled={loading}
+          >
+            Admin
+          </button>
         </div>
       </div>
-    </div>
+
+      <div className="mt-6 text-sm text-slate-600">
+        Don’t have an account?{' '}
+        <Link to="/register" className="font-medium text-violet-700 hover:text-violet-800 hover:underline">
+          Create one
+        </Link>
+      </div>
+
+      <div className="mt-3 text-sm">
+        <Link to="/" className="text-slate-500 hover:text-slate-700">
+          ← Back to Home
+        </Link>
+      </div>
+    </Card>
   );
 };
 

@@ -10,7 +10,6 @@ import {
   Stethoscope,
   CheckCircle,
 } from 'lucide-react';
-import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Card from '../../components/ui/Card';
 import Spinner from '../../components/ui/Spinner';
@@ -338,23 +337,22 @@ const RegisterPage = () => {
 
       {/* Navigation Buttons */}
       <div className="flex gap-3">
-        <Button
+        <button
           type="button"
-          variant="outline"
           onClick={() => setStep(1)}
           disabled={loading}
-          className="flex-1 border-violet-300 text-violet-700 hover:bg-violet-50 focus:ring-violet-500"
+          className="inline-flex flex-1 items-center justify-center rounded-xl border border-violet-300 bg-white px-4 py-3 text-sm font-semibold text-violet-700 shadow-sm transition hover:bg-violet-50 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 disabled:opacity-60"
         >
           Back
-        </Button>
-        <Button
+        </button>
+        <button
           type="button"
           onClick={handleNextStep}
           disabled={loading}
-          className="flex-1 bg-violet-600 hover:bg-violet-700 focus:ring-violet-500"
+          className="inline-flex flex-1 items-center justify-center rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 disabled:opacity-60"
         >
           Continue
-        </Button>
+        </button>
       </div>
 
       <div className="text-sm text-slate-600">
@@ -535,19 +533,18 @@ const RegisterPage = () => {
 
       {/* Navigation Buttons */}
       <div className="flex gap-3">
-        <Button
+        <button
           type="button"
-          variant="outline"
           onClick={() => setStep(2)}
           disabled={loading}
-          className="flex-1 border-violet-300 text-violet-700 hover:bg-violet-50 focus:ring-violet-500"
+          className="inline-flex flex-1 items-center justify-center rounded-xl border border-violet-300 bg-white px-4 py-3 text-sm font-semibold text-violet-700 shadow-sm transition hover:bg-violet-50 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 disabled:opacity-60"
         >
           Back
-        </Button>
-        <Button
+        </button>
+        <button
           type="submit"
           disabled={loading}
-          className="flex-1 bg-violet-600 hover:bg-violet-700 focus:ring-violet-500"
+          className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 disabled:opacity-60"
         >
           {loading ? (
             <>
@@ -557,10 +554,10 @@ const RegisterPage = () => {
           ) : (
             <>
               <CheckCircle size={18} />
-              Create Account
+              Create account
             </>
           )}
-        </Button>
+        </button>
       </div>
 
       <div className="text-sm text-slate-600">
@@ -579,9 +576,9 @@ const RegisterPage = () => {
   ];
 
   return (
-    <Card className="p-6 sm:p-7 rounded-2xl border border-slate-200/80 shadow-sm">
+    <Card className="p-7 sm:p-8 rounded-2xl border border-slate-200/80 shadow-lg">
       {/* Stepper */}
-      <div className="mb-6 flex items-center gap-2">
+      <div className="mb-7 flex items-center gap-2">
         {steps.map((s, idx) => {
           const isActive = step === s.key;
           const isDone = step > s.key;
@@ -606,7 +603,7 @@ const RegisterPage = () => {
                 {s.label}
               </div>
               {idx !== steps.length - 1 && (
-                <div className="h-px flex-1 bg-slate-200" />
+                <div className="h-px w-10 bg-slate-200" />
               )}
             </React.Fragment>
           );

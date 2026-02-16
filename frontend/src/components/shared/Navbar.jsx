@@ -12,7 +12,8 @@ import {
   Home,
   Stethoscope,
   Users,
-  LayoutDashboard
+  LayoutDashboard,
+  Mail
 } from 'lucide-react';
 import authApi from '../../api/authApi';
 
@@ -40,13 +41,38 @@ const Navbar = () => {
     return location.pathname.startsWith(path);
   };
 
+  const scrollToSection = (sectionId) => {
+    const doScroll = () => {
+      const el = document.getElementById(sectionId);
+      if (!el) return;
+      // account for sticky navbar height
+      const offset = 80;
+      const top = el.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({ top, behavior: 'smooth' });
+    };
+
+    setIsMenuOpen(false);
+    if (location.pathname !== '/') {
+      navigate(`/#${sectionId}`);
+      // allow HomePage to render before scrolling
+      setTimeout(doScroll, 50);
+      return;
+    }
+
+    // already on HomePage
+    doScroll();
+  };
+
   // Navigation links based on user role
   const getNavLinks = () => {
     if (!user) {
       return [
-        { path: '/', label: 'Home', icon: Home },
-        { path: '/login', label: 'Login', icon: User },
-        { path: '/register', label: 'Register', icon: FileText },
+        { type: 'route', path: '/', label: 'Home', icon: Home },
+        { type: 'section', sectionId: 'features', label: 'Features', icon: FileText },
+        { type: 'section', sectionId: 'how-it-works', label: 'How It Works', icon: Users },
+        { type: 'section', sectionId: 'specializations', label: 'Specialists', icon: Stethoscope },
+        { type: 'section', sectionId: 'testimonials', label: 'Testimonials', icon: Users },
+        { type: 'section', sectionId: 'contact', label: 'Contact', icon: Mail },
       ];
     }
 
@@ -95,19 +121,32 @@ const Navbar = () => {
           <div className="hidden md:flex md:items-center md:space-x-4">
             {navLinks.map((link) => {
               const Icon = link.icon;
+              const isSection = link.type === 'section';
               return (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive(link.path)
-                      ? 'bg-indigo-50 text-indigo-600'
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{link.label}</span>
-                </Link>
+                isSection ? (
+                  <button
+                    key={link.sectionId}
+                    type="button"
+                    onClick={() => scrollToSection(link.sectionId)}
+                    className="flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{link.label}</span>
+                  </button>
+                ) : (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      isActive(link.path)
+                        ? 'bg-indigo-50 text-indigo-600'
+                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{link.label}</span>
+                  </Link>
+                )
               );
             })}
           </div>
@@ -219,20 +258,33 @@ const Navbar = () => {
           <div className="px-2 pt-2 pb-3 space-y-1">
             {navLinks.map((link) => {
               const Icon = link.icon;
+              const isSection = link.type === 'section';
               return (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  onClick={toggleMenu}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium ${
-                    isActive(link.path)
-                      ? 'bg-indigo-50 text-indigo-600'
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span>{link.label}</span>
-                </Link>
+                isSection ? (
+                  <button
+                    key={link.sectionId}
+                    type="button"
+                    onClick={() => scrollToSection(link.sectionId)}
+                    className="flex w-full items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                  >
+                    <Icon className="h-5 w-5" />
+                    <span>{link.label}</span>
+                  </button>
+                ) : (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    onClick={toggleMenu}
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium ${
+                      isActive(link.path)
+                        ? 'bg-indigo-50 text-indigo-600'
+                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                  >
+                    <Icon className="h-5 w-5" />
+                    <span>{link.label}</span>
+                  </Link>
+                )
               );
             })}
 

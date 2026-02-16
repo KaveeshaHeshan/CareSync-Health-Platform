@@ -1,13 +1,16 @@
 import React from 'react';
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Heart, Shield, Clock, Users } from 'lucide-react';
 
 const AuthLayout = () => {
+  const location = useLocation();
+  const isRegister = location.pathname.startsWith('/register');
+
   return (
     <div className="min-h-screen bg-linear-to-br from-violet-50 via-white to-fuchsia-50 flex">
       {/* Left Side - Auth Form */}
       <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
-        <div className="w-full max-w-md">
+        <div className={`w-full ${isRegister ? 'max-w-lg' : 'max-w-md'}`}>
           {/* Logo */}
           <Link to="/" className="flex items-center justify-center gap-3 mb-8">
             <div className="w-12 h-12 bg-linear-to-br from-violet-600 to-fuchsia-600 rounded-xl flex items-center justify-center">
@@ -36,7 +39,7 @@ const AuthLayout = () => {
       </div>
 
       {/* Right Side - Info Section */}
-      <div className="hidden lg:flex flex-1 bg-linear-to-br from-violet-700 to-fuchsia-600 p-12 text-white">
+      <div className="hidden lg:flex flex-1 bg-linear-to-br from-violet-700 via-fuchsia-600 to-violet-800 p-12 text-white">
         <div className="flex flex-col justify-center max-w-xl mx-auto">
           <h1 className="text-4xl font-bold mb-6">
             Welcome to CareSync

@@ -1,5 +1,5 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Calendar,
   Video,
@@ -35,6 +35,18 @@ import bannerImage from '../assets/banner.jpg';
  */
 const HomePage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!location.hash) return;
+    const sectionId = location.hash.replace('#', '');
+    const el = document.getElementById(sectionId);
+    if (!el) return;
+    const offset = 80;
+    const top = el.getBoundingClientRect().top + window.scrollY - offset;
+    // next tick so layout is ready
+    setTimeout(() => window.scrollTo({ top, behavior: 'smooth' }), 0);
+  }, [location.hash]);
 
   const features = [
     {
@@ -393,7 +405,7 @@ const HomePage = () => {
       </section>
 
       {/* Specializations Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+      <section id="specializations" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-slate-900 mb-4">
